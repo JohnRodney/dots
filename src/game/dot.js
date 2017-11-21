@@ -3,6 +3,7 @@ import shadeColor2 from './utilities/shade-color';
 
 export default class Dot {
   constructor(x, y, radius, startAngle, endAngle) {
+    this.scale = 1;
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -11,11 +12,18 @@ export default class Dot {
     this.colors = new Colors();
     this.color = this.colors.random();
     this.direction = this.randomDirection();
+    this.element = this.randomElement();
   }
 
   move() {
     this.x += this.direction.x;
     this.y += this.direction.y;
+  }
+
+  randomElement() {
+    const elements = ['hydrogen', 'helium'];
+    const { floor, random } = Math;
+    return elements[floor(random() *elements.length)];
   }
 
   randomDirection() {
@@ -28,18 +36,19 @@ export default class Dot {
     if (xDir > 0) {
       this.x = 0;
     } else {
-      this.x = document.body.clientWidth * 2 - this.radius;
+      this.x = document.body.clientWidth * 2 - 10;
     }
     return { x: xDir, y: yDir };
   }
 
-  draw(ctx) {
+  draw(ctx, scale) {
     const { x, y, radius, startAngle, endAngle } = this;
+    if (scale !== this.scale) { this.scale = scale; }
     ctx.beginPath();
     ctx.strokeStyle = this.color;
     ctx.fillStyle = this.color;
     ctx.moveTo(x, y);
-    ctx.arc(x, y, radius, startAngle, endAngle);
+    ctx.arc(x, y, radius * scale, startAngle, endAngle);
     ctx.shadowColor = '#343434';
     ctx.shadowBlur = 5;
     ctx.shadowOffsetX = 2;
@@ -47,11 +56,11 @@ export default class Dot {
     ctx.stroke();
     ctx.fill();
     ctx.closePath();
-    this.shade(ctx, 3);
+    this.shade(ctx, 3, scale);
   }
-  shade(ctx, times) {
+  shade(ctx, times, scale) {
     const { x, y, radius, startAngle, endAngle } = this;
-    let newRadius = radius * .7;
+    let newRadius = radius * scale * .7;
     let newColor = this.color;
     for (let i = 0; i < times; i++) {
       ctx.beginPath();

@@ -22,6 +22,7 @@ var Dot = function () {
   function Dot(x, y, radius, startAngle, endAngle) {
     _classCallCheck(this, Dot);
 
+    this.scale = 1;
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -30,6 +31,7 @@ var Dot = function () {
     this.colors = new _colors2.default();
     this.color = this.colors.random();
     this.direction = this.randomDirection();
+    this.element = this.randomElement();
   }
 
   _createClass(Dot, [{
@@ -37,6 +39,15 @@ var Dot = function () {
     value: function move() {
       this.x += this.direction.x;
       this.y += this.direction.y;
+    }
+  }, {
+    key: 'randomElement',
+    value: function randomElement() {
+      var elements = ['hydrogen', 'helium'];
+      var floor = Math.floor,
+          random = Math.random;
+
+      return elements[floor(random() * elements.length)];
     }
   }, {
     key: 'randomDirection',
@@ -56,24 +67,27 @@ var Dot = function () {
       if (xDir > 0) {
         this.x = 0;
       } else {
-        this.x = document.body.clientWidth * 2 - this.radius;
+        this.x = document.body.clientWidth * 2 - 10;
       }
       return { x: xDir, y: yDir };
     }
   }, {
     key: 'draw',
-    value: function draw(ctx) {
+    value: function draw(ctx, scale) {
       var x = this.x,
           y = this.y,
           radius = this.radius,
           startAngle = this.startAngle,
           endAngle = this.endAngle;
 
+      if (scale !== this.scale) {
+        this.scale = scale;
+      }
       ctx.beginPath();
       ctx.strokeStyle = this.color;
       ctx.fillStyle = this.color;
       ctx.moveTo(x, y);
-      ctx.arc(x, y, radius, startAngle, endAngle);
+      ctx.arc(x, y, radius * scale, startAngle, endAngle);
       ctx.shadowColor = '#343434';
       ctx.shadowBlur = 5;
       ctx.shadowOffsetX = 2;
@@ -81,18 +95,18 @@ var Dot = function () {
       ctx.stroke();
       ctx.fill();
       ctx.closePath();
-      this.shade(ctx, 3);
+      this.shade(ctx, 3, scale);
     }
   }, {
     key: 'shade',
-    value: function shade(ctx, times) {
+    value: function shade(ctx, times, scale) {
       var x = this.x,
           y = this.y,
           radius = this.radius,
           startAngle = this.startAngle,
           endAngle = this.endAngle;
 
-      var newRadius = radius * .7;
+      var newRadius = radius * scale * .7;
       var newColor = this.color;
       for (var i = 0; i < times; i++) {
         ctx.beginPath();

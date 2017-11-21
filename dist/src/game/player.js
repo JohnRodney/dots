@@ -35,7 +35,7 @@ var Player = function () {
     }
   }, {
     key: 'draw',
-    value: function draw(ctx) {
+    value: function draw(ctx, scale) {
       var x = this.x,
           y = this.y,
           radius = this.radius,
@@ -43,9 +43,9 @@ var Player = function () {
           endAngle = this.endAngle;
 
       ctx.beginPath();
-      ctx.fillStyle = '#37474F';
+      ctx.fillStyle = '#afafaf';
       ctx.moveTo(x, y);
-      ctx.arc(x, y, radius, startAngle, endAngle);
+      ctx.arc(x, y, radius * scale, startAngle, endAngle);
       ctx.shadowColor = 'black';
       ctx.shadowBlur = 10;
       ctx.shadowOffsetX = 5;

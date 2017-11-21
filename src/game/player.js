@@ -14,12 +14,12 @@ export default class Player {
     this.y = clientY * 2;
   }
 
-  draw(ctx) {
+  draw(ctx, scale) {
     const { x, y, radius, startAngle, endAngle } = this;
     ctx.beginPath();
-    ctx.fillStyle = '#37474F'
+    ctx.fillStyle = '#afafaf'
     ctx.moveTo(x, y);
-    ctx.arc(x, y, radius, startAngle, endAngle);
+    ctx.arc(x, y, radius * scale, startAngle, endAngle);
     ctx.shadowColor = 'black';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetX = 5;
