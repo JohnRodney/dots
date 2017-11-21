@@ -27,7 +27,6 @@ var MenuItem = function () {
   }, {
     key: 'collide',
     value: function collide(x, y) {
-      console.log(x, y, this.x, this.y);
       return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
     }
   }]);
@@ -63,7 +62,7 @@ var Menu = function () {
         return item.collide(x * 2, y * 2);
       }).pop();
       if (item && item.text === 'Survival') {
-        this.parent.state = 'survival';
+        this.parent.state = 'start-survival';
       }
     }
   }, {

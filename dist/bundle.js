@@ -165,7 +165,7 @@ var Dot = function () {
 }();
 
 exports.default = Dot;
-},{"./colors.js":1,"./utilities/shade-color":7}],3:[function(require,module,exports){
+},{"./colors.js":1,"./utilities/shade-color":10}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -186,169 +186,65 @@ var _menu = require('./menu');
 
 var _menu2 = _interopRequireDefault(_menu);
 
-var _textAnimation = require('./utilities/text-animation');
-
-var _textAnimation2 = _interopRequireDefault(_textAnimation);
-
 var _inputManager = require('./utilities/input-manager');
 
 var _inputManager2 = _interopRequireDefault(_inputManager);
 
-var _utilityFunctions = require('./utilities/utility-functions');
+var _survival = require('./survival');
+
+var _survival2 = _interopRequireDefault(_survival);
+
+var _animationManager = require('./utilities/animation-manager');
+
+var _animationManager2 = _interopRequireDefault(_animationManager);
+
+var _inventoryManager = require('./utilities/inventory-manager');
+
+var _inventoryManager2 = _interopRequireDefault(_inventoryManager);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Survival = function Survival(game) {
-  _classCallCheck(this, Survival);
-
-  this.game = game;
-};
-
 var Game = function () {
   function Game() {
     _classCallCheck(this, Game);
 
-    this.level = 1;
-    this.scale = 1;
-    this.animations = [];
-    this.playerInventory = [];
-    this.coins = 0;
-    this.currentCombo = 0;
+    this.animationManager = new _animationManager2.default();
+    this.inventoryManager = new _inventoryManager2.default();
     this.inputManger = new _inputManager2.default(this);
-    this.state = 'constructed';
     this.menu = new _menu2.default(this);
-    this.canvas = document.getElementById('game');
-    this.canvas.width = document.body.clientWidth * 2;
-    this.canvas.height = document.body.clientHeight * 2;
-    this.canvas.style.width = document.body.clientWidth + 'px';
-    this.canvas.style.height = document.body.clientHeight + 'px';
-    this.ctx = this.canvas.getContext('2d');
+    this.state = 'constructed';
+    this.setupCanvas();
   }
 
   _createClass(Game, [{
-    key: 'randomRadius',
-    value: function randomRadius() {
-      var player = this.player;
-      var floor = Math.floor,
-          random = Math.random;
-
-      var maxSize = player ? player.radius * 2 : 50;
-      return floor(random() * maxSize);
-    }
-  }, {
-    key: 'randomY',
-    value: function randomY() {
-      var floor = Math.floor,
-          random = Math.random;
-      var height = this.canvas.height;
-
-      return floor(random() * height);
-    }
-  }, {
-    key: 'randomX',
-    value: function randomX() {
-      var floor = Math.floor,
-          random = Math.random;
-      var width = this.canvas.width;
-
-      return floor(random() * width);
-    }
-  }, {
-    key: 'distance',
-    value: function distance(dot) {
-      var player = this.player;
-      var sqrt = Math.sqrt;
-
-      var a = player.x - dot.x;
-      var b = player.y - dot.y;
-
-      return sqrt(a * a + b * b);
-    }
-  }, {
-    key: 'physics',
-    value: function physics() {
-      var _this = this;
-
-      var player = this.player;
-
-      this.dots.forEach(function (dot) {
-        if (_this.distance(dot) <= player.radius * _this.scale + dot.radius * _this.scale) {
-          if (player.radius > dot.radius) {
-            player.radius += 1;
-            _this.playerInventory.push(dot.element);
-            if (_this.animations.length > 0) {
-              _this.currentCombo += 1;
-              _this.coins += _this.currentCombo;
-              _this.animations.push(new _textAnimation2.default(1000, player.x, player.y, 'Combo: +' + _this.currentCombo + ' ' + dot.element));
-            } else {
-              _this.currentCombo = 1;
-              _this.coins += 1;
-              _this.animations.push(new _textAnimation2.default(1000, player.x, player.y, '+1 ' + dot.element));
-            }
-            dot.destroy = true;
-          } else {
-            _this.state = 'gameover';
-          }
-        }
-        if ((0, _utilityFunctions.offscreen)(dot)) {
-          dot.destroy = true;
-        }
-      });
-      this.dots = this.dots.filter(function (dot) {
-        return !dot.destroy;
-      });
-      if (this.dots.length < this.maxDots) {
-        this.dots.push(new _dot2.default(this.randomX(), this.randomY(), this.randomRadius(), 0, 2 * Math.PI));
-      }
-      this.dots.forEach(function (dot) {
-        return dot.move();
-      });
-    }
-  }, {
-    key: 'playSurvivalGameLoop',
-    value: function playSurvivalGameLoop() {
-      var _this2 = this;
-
-      this.canvas.cursor = 'none';
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.dots.forEach(function (dot) {
-        return dot.draw(_this2.ctx, _this2.scale);
-      });
-      this.animations.forEach(function (animation) {
-        return animation.draw(_this2.ctx);
-      });
-      this.animations = this.animations.filter(function (animation) {
-        return !animation.destroy;
-      });
-      this.player.draw(this.ctx, this.scale);
-      this.ctx.fillStyle = 'yellow';
-      this.ctx.font = "30px Arial";
-      this.ctx.fillText('Score: ' + this.player.radius, 100, 50);
-      this.ctx.fillText('Coins: ' + this.coins, 100, 80);
-      this.ctx.font = "100px Indie Flower, cursive";
-      this.ctx.fillText('Level: ' + this.level, document.body.clientWidth, document.body.clientHeight * 2 - 100);
-      this.physics();
-      if (this.level * 10 + 10 < this.player.radius * this.scale) {
-        this.scale /= 2;
-        this.level++;
-      }
+    key: 'setupCanvas',
+    value: function setupCanvas() {
+      this.canvas = document.getElementById('game');
+      this.canvas.width = document.body.clientWidth * 2;
+      this.canvas.height = document.body.clientHeight * 2;
+      this.canvas.style.width = document.body.clientWidth + 'px';
+      this.canvas.style.height = document.body.clientHeight + 'px';
+      this.ctx = this.canvas.getContext('2d');
     }
   }, {
     key: 'gameMenu',
     value: function gameMenu() {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.menu.draw(this.ctx);
-      this.player.draw(this.ctx, this.scale);
+      this.player.draw(this.ctx, 5);
     }
   }, {
     key: 'render',
     value: function render() {
       if (this.state === 'constructed') {
         this.gameMenu();
+      } else if (this.state === 'start-survival') {
+        this.survival = new _survival2.default(this.player, this);
+        this.state = 'survival';
       } else if (this.state === 'survival') {
-        this.playSurvivalGameLoop();
+        this.survival.play();
       } else if (this.state === 'gameover') {
         this.run();
         return false;
@@ -358,18 +254,8 @@ var Game = function () {
   }, {
     key: 'run',
     value: function run() {
-      /* survival game mode stuff*/
-      this.scale = 1;
-      this.level = 1;
-      this.maxDots = 100;
-      this.player = new _player2.default();
-      this.dots = [];
-      for (var i = 0; i < this.maxDots; i++) {
-        this.dots.push(new _dot2.default(this.randomX(), this.randomY(), this.randomRadius(), 0, 2 * Math.PI));
-      }
-
       /* Game engine / canvas stuff */
-      this.animations = [];
+      this.player = new _player2.default();
       this.state = 'constructed';
       this.render();
     }
@@ -379,7 +265,7 @@ var Game = function () {
 }();
 
 exports.default = Game;
-},{"./dot":2,"./menu":4,"./player":5,"./utilities/input-manager":6,"./utilities/text-animation":8,"./utilities/utility-functions":9}],4:[function(require,module,exports){
+},{"./dot":2,"./menu":4,"./player":5,"./survival":6,"./utilities/animation-manager":7,"./utilities/input-manager":8,"./utilities/inventory-manager":9}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -409,7 +295,6 @@ var MenuItem = function () {
   }, {
     key: 'collide',
     value: function collide(x, y) {
-      console.log(x, y, this.x, this.y);
       return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
     }
   }]);
@@ -445,7 +330,7 @@ var Menu = function () {
         return item.collide(x * 2, y * 2);
       }).pop();
       if (item && item.text === 'Survival') {
-        this.parent.state = 'survival';
+        this.parent.state = 'start-survival';
       }
     }
   }, {
@@ -544,6 +429,208 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _dot = require('./dot');
+
+var _dot2 = _interopRequireDefault(_dot);
+
+var _utilityFunctions = require('./utilities/utility-functions');
+
+var _textAnimation = require('./utilities/text-animation');
+
+var _textAnimation2 = _interopRequireDefault(_textAnimation);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Survival = function () {
+  /* initiate all defaults for a survival mode */
+  function Survival(player, game) {
+    _classCallCheck(this, Survival);
+
+    this.player = player;
+    this.game = game;
+    this.level = 1;
+    this.scale = 1;
+    this.currentCombo = 0;
+    /* survival game mode stuff*/
+    this.maxDots = 100;
+    this.dots = [];
+    for (var i = 0; i < this.maxDots; i++) {
+      this.dots.push(new _dot2.default(this.randomX(), this.randomY(), this.randomRadius(), 0, 2 * Math.PI));
+    }
+  }
+
+  /* generate a radius from 0 to twice player's radius */
+
+
+  _createClass(Survival, [{
+    key: 'randomRadius',
+    value: function randomRadius() {
+      var player = this.player;
+      var floor = Math.floor,
+          random = Math.random;
+
+      var maxSize = player ? player.radius * 2 : 50;
+      return floor(random() * maxSize);
+    }
+
+    /* generate Y coordinate from 0 to canvas height */
+
+  }, {
+    key: 'randomY',
+    value: function randomY() {
+      var floor = Math.floor,
+          random = Math.random;
+      var height = this.game.canvas.height;
+
+      return floor(random() * height);
+    }
+
+    /* generate X coordinate from 0 to canvas width */
+
+  }, {
+    key: 'randomX',
+    value: function randomX() {
+      var floor = Math.floor,
+          random = Math.random;
+      var width = this.game.canvas.width;
+
+      return floor(random() * width);
+    }
+  }, {
+    key: 'play',
+    value: function play() {
+      var _game = this.game,
+          ctx = _game.ctx,
+          canvas = _game.canvas;
+      var dots = this.dots,
+          scale = this.scale,
+          player = this.player;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      dots.forEach(function (dot) {
+        return dot.draw(ctx, scale);
+      });
+      this.game.animationManager.draw(ctx);
+      player.draw(ctx, scale);
+      ctx.fillStyle = 'yellow';
+      ctx.font = "30px Arial";
+      ctx.fillText('Score: ' + player.radius, 100, 50);
+      ctx.fillText('Coins: ' + this.coins, 100, 80);
+      ctx.font = "100px Indie Flower, cursive";
+      ctx.fillText('Level: ' + this.level, document.body.clientWidth, document.body.clientHeight * 2 - 100);
+      this.physics();
+      if (this.level * 10 + 10 < this.player.radius * this.scale) {
+        this.scale /= 2;
+        this.level++;
+      }
+    }
+  }, {
+    key: 'distance',
+    value: function distance(dot) {
+      var player = this.player;
+      var sqrt = Math.sqrt;
+
+      var a = player.x - dot.x;
+      var b = player.y - dot.y;
+
+      return sqrt(a * a + b * b);
+    }
+  }, {
+    key: 'physics',
+    value: function physics() {
+      var _this = this;
+
+      var player = this.player;
+
+      this.dots.forEach(function (dot) {
+        if (_this.distance(dot) <= player.radius * _this.scale + dot.radius * _this.scale) {
+          if (player.radius > dot.radius) {
+            player.radius += 1;
+            // this.playerInventory.push(dot.element);
+            if (true) {
+              _this.currentCombo += 1;
+              _this.coins += _this.currentCombo;
+              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, 'Combo: +' + _this.currentCombo + ' ' + dot.element));
+            } else {
+              _this.currentCombo = 1;
+              _this.coins += 1;
+              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, '+1 ' + dot.element));
+            }
+            dot.destroy = true;
+          } else {
+            _this.game.state = 'gameover';
+          }
+        }
+        if ((0, _utilityFunctions.offscreen)(dot)) {
+          dot.destroy = true;
+        }
+      });
+      this.dots = this.dots.filter(function (dot) {
+        return !dot.destroy;
+      });
+      if (this.dots.length < this.maxDots) {
+        this.dots.push(new _dot2.default(this.randomX(), this.randomY(), this.randomRadius(), 0, 2 * Math.PI));
+      }
+      this.dots.forEach(function (dot) {
+        return dot.move();
+      });
+    }
+  }]);
+
+  return Survival;
+}();
+
+exports.default = Survival;
+},{"./dot":2,"./utilities/text-animation":11,"./utilities/utility-functions":12}],7:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var AnimationManager = function () {
+  function AnimationManager() {
+    _classCallCheck(this, AnimationManager);
+
+    this.animations = [];
+  }
+
+  _createClass(AnimationManager, [{
+    key: "push",
+    value: function push(animation) {
+      this.animations.push(animation);
+    }
+  }, {
+    key: "draw",
+    value: function draw(ctx) {
+      this.animations.forEach(function (animation) {
+        return animation.draw(ctx);
+      });
+      this.animations = this.animations.filter(function (animation) {
+        return !animation.destroy;
+      });
+    }
+  }]);
+
+  return AnimationManager;
+}();
+
+exports.default = AnimationManager;
+},{}],8:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var InputManager = function () {
@@ -568,7 +655,24 @@ var InputManager = function () {
 }();
 
 exports.default = InputManager;
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var InventoryManager = function InventoryManager() {
+  _classCallCheck(this, InventoryManager);
+
+  this.playerInventory = [];
+  this.coins = 0;
+};
+
+exports.default = InventoryManager;
+},{}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -584,7 +688,7 @@ function shadeColor2(color, percent) {
         B = f & 0x0000FF;
     return "#" + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
 }
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -626,7 +730,7 @@ var TextAnimation = function () {
 }();
 
 exports.default = TextAnimation;
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -636,7 +740,7 @@ exports.offscreen = offscreen;
 function offscreen(dot) {
   return dot.x + dot.radius < 0 || dot.y + dot.radius < 0 || dot.x - dot.radius > document.body.clientWidth * 2 || dot.y - dot.radius > document.body.clientHeight * 2;
 }
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 var _game = require('./game/game');
@@ -648,4 +752,4 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 window.onload = function () {
   return new _game2.default().run();
 };
-},{"./game/game":3}]},{},[10]);
+},{"./game/game":3}]},{},[13]);

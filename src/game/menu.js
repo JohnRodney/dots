@@ -12,7 +12,6 @@ class MenuItem {
   }
 
   collide(x, y) {
-    console.log(x, y, this.x, this.y)
     return (
       x > this.x &&
       x < this.x + this.width &&
@@ -44,7 +43,7 @@ export default class Menu {
     const { x, y } = e;
     const item = this.menuItems.filter(item => item.collide(x * 2, y * 2)).pop();
     if (item && item.text === 'Survival') {
-      this.parent.state = 'survival';
+      this.parent.state = 'start-survival';
     }
   }
 
