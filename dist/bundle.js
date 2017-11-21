@@ -214,7 +214,8 @@ var Game = function () {
     this.inventoryManager = new _inventoryManager2.default();
     this.inputManger = new _inputManager2.default(this);
     this.menu = new _menu2.default(this);
-    this.state = 'constructed';
+    this.state = 'main-menu';
+    this.player = new _player2.default();
     this.setupCanvas();
   }
 
@@ -238,7 +239,7 @@ var Game = function () {
   }, {
     key: 'render',
     value: function render() {
-      if (this.state === 'constructed') {
+      if (this.state === 'main-menu') {
         this.gameMenu();
       } else if (this.state === 'start-survival') {
         this.survival = new _survival2.default(this.player, this);
@@ -254,9 +255,8 @@ var Game = function () {
   }, {
     key: 'run',
     value: function run() {
-      /* Game engine / canvas stuff */
       this.player = new _player2.default();
-      this.state = 'constructed';
+      this.state = 'main-menu';
       this.render();
     }
   }]);

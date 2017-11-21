@@ -12,7 +12,8 @@ export default class Game {
     this.inventoryManager = new InventoryManager();
     this.inputManger = new InputManager(this);
     this.menu = new Menu(this);
-    this.state = 'constructed';
+    this.state = 'main-menu';
+    this.player = new Player();
     this.setupCanvas();
   }
 
@@ -32,7 +33,7 @@ export default class Game {
   }
 
   render() {
-    if (this.state === 'constructed') {
+    if (this.state === 'main-menu') {
       this.gameMenu();
     } else if (this.state === 'start-survival') {
       this.survival = new Survival(this.player, this);
@@ -47,9 +48,8 @@ export default class Game {
   }
 
   run() {
-    /* Game engine / canvas stuff */
     this.player = new Player();
-    this.state = 'constructed';
+    this.state = 'main-menu';
     this.render();
   }
 }
