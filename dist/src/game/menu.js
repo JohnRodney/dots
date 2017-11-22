@@ -63,6 +63,8 @@ var Menu = function () {
       }).pop();
       if (item && item.text === 'Survival') {
         this.parent.state = 'start-survival';
+      } else if (item.text === 'High Scores') {
+        console.log('render highscore');
       }
     }
   }, {

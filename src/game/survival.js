@@ -88,6 +88,11 @@ export default class Survival {
           dot.destroy = true;
         } else {
           this.game.state = 'gameover';
+          if (this.game.username && this.game._id) {
+            $.post(`${window.location.origin}/dots/highscore`, { username: this.game.username, playerId: this.game._id, score: this.player.radius }, (data) => {
+              console.log(data, 'posted high score');
+            });
+          }
         }
       }
       if (offscreen(dot)) {

@@ -5,9 +5,12 @@ import InputManager from './utilities/input-manager';
 import Survival from './survival';
 import AnimationManager from './utilities/animation-manager';
 import InventoryManager from './utilities/inventory-manager';
+import { getCookie } from './utilities/utility-functions';
 
 export default class Game {
   constructor() {
+    this.username = getCookie('username');
+    this._id = getCookie('_id');
     this.animationManager = new AnimationManager();
     this.inventoryManager = new InventoryManager();
     this.inputManger = new InputManager(this);
@@ -33,6 +36,7 @@ export default class Game {
   }
 
   render() {
+    const { ctx } = this;
     if (this.state === 'main-menu') {
       this.gameMenu();
     } else if (this.state === 'start-survival') {
@@ -44,6 +48,12 @@ export default class Game {
       this.run();
       return false;
     }
+    ctx.beginPath();
+    ctx.fillStyle = 'yellow';
+    ctx.font = "30px Indie Flower, cursive";
+    ctx.fillText(`Player: ${this.username}`, this.canvas.width / 2, 100);
+    ctx.closePath();
+
     requestAnimationFrame(this.render.bind(this));
   }
 

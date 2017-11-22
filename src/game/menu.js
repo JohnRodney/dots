@@ -44,6 +44,8 @@ export default class Menu {
     const item = this.menuItems.filter(item => item.collide(x * 2, y * 2)).pop();
     if (item && item.text === 'Survival') {
       this.parent.state = 'start-survival';
+    } else if(item.text === 'High Scores') {
+      console.log('render highscore');
     }
   }
 

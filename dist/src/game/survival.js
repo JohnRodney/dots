@@ -138,6 +138,11 @@ var Survival = function () {
             dot.destroy = true;
           } else {
             _this.game.state = 'gameover';
+            if (_this.game.username && _this.game._id) {
+              $.post(window.location.origin + '/dots/highscore', { username: _this.game.username, playerId: _this.game._id, score: _this.player.radius }, function (data) {
+                console.log(data, 'posted high score');
+              });
+            }
           }
         }
         if ((0, _utilityFunctions.offscreen)(dot)) {
