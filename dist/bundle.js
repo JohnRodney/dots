@@ -94,7 +94,7 @@ var Dot = function () {
   }, {
     key: 'randomElement',
     value: function randomElement() {
-      var elements = ['hydrogen', 'helium'];
+      var elements = ['hydrogen', 'helium', 'lithium', 'beryllium'];
       var floor = Math.floor,
           random = Math.random;
 
@@ -233,6 +233,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var inventoryTextures = {
+  hydrogen: { path: '/images/hydrogen.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
+  helium: { path: '/images/helium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
+  beryllium: { path: '/images/beryllium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
+  lithium: { path: '/images/lithium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
+  coin: { path: '/images/coin.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 }
+};
+
 var Game = function () {
   function Game() {
     _classCallCheck(this, Game);
@@ -312,6 +320,8 @@ var Game = function () {
         this.state = 'survival';
       } else if (this.state === 'high-scores') {
         this.renderHighScores();
+      } else if (this.state === 'store') {
+        this.renderStore();
       } else if (this.state === 'survival') {
         this.survival.play();
       } else if (this.state === 'gameover') {
@@ -322,10 +332,73 @@ var Game = function () {
       ctx.beginPath();
       ctx.fillStyle = 'yellow';
       ctx.font = "30px Indie Flower, cursive";
-      ctx.fillText('Player: ' + this.username, this.canvas.width / 2, 100);
+      ctx.fillText('Player: ' + this.username, this.canvas.width / 2, 30);
       ctx.closePath();
 
       requestAnimationFrame(this.render.bind(this));
+    }
+  }, {
+    key: 'renderStore',
+    value: function renderStore() {
+      var ctx = this.ctx,
+          canvas = this.canvas,
+          inventoryManager = this.inventoryManager;
+      var playerInventory = inventoryManager.playerInventory,
+          coins = inventoryManager.coins;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(100, 255, 255, .3)';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(255, 255, 255, .9)';
+      ctx.rect(20, 80, String(coins).length * 10 + 400, 130);
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+      ctx.beginPath();
+      var texture = inventoryTextures.coin;
+      var image = document.createElement('img');
+      image.src = '' + window.location.origin + texture.path;
+
+      ctx.drawImage(image, 40, 100, 90, 90);
+
+      ctx.fillStyle = 'yellow';
+      ctx.textBaseline = "middle";
+      ctx.font = "70px Indie Flower, cursive";
+      ctx.fillText('' + coins, 300, 150);
+      ctx.closePath();
+
+      playerInventory.forEach(function (item, i) {
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(100, 255, 255, .3)';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(255, 255, 255, .9)';
+        ctx.rect(20, 280 * i + 300, 350, 260);
+        ctx.stroke();
+        ctx.fill();
+        ctx.closePath();
+
+        ctx.beginPath();
+        var texture = inventoryTextures[item.name];
+        if (texture) {
+          var _image = document.createElement('img');
+          _image.src = '' + window.location.origin + texture.path;
+
+          ctx.drawImage(_image, 30, 280 * i + 300, 180, 180);
+        }
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'white';
+        ctx.textBaseline = "top";
+        ctx.font = "50px Indie Flower, cursive";
+        ctx.fillText('' + item.name, 60, 280 * i + 480);
+        ctx.fillText('' + item.quantity, 250, 280 * i + 350);
+        ctx.closePath();
+        ctx.textAlign = 'center';
+      });
+
+      this.player.draw(this.ctx, 3);
     }
   }, {
     key: 'run',
@@ -407,12 +480,16 @@ var Menu = function () {
         return item.collide(x * 2, y * 2);
       }).pop();
 
-      if (parent.state !== 'high-scores' && parent.state !== 'main-menu') {
+      if (parent.state !== 'high-scores' && parent.state !== 'main-menu' && parent.state !== 'store') {
         return false;
       }if (parent.state === 'high-scores') {
         parent.state = "main-menu";
+      } else if (parent.state === 'store') {
+        parent.state = "main-menu";
       } else if (item && item.text === 'Survival') {
         parent.state = 'start-survival';
+      } else if (item.text === 'Store') {
+        parent.state = 'store';
       } else if (item.text === 'High Scores') {
         if (window.deployment === 'development') {
           parent.state = 'high-scores';
@@ -635,7 +712,7 @@ var Survival = function () {
       ctx.fillStyle = 'yellow';
       ctx.font = "30px Arial";
       ctx.fillText('Score: ' + player.radius, 100, 50);
-      ctx.fillText('Coins: ' + this.coins, 100, 80);
+      ctx.fillText('Coins: ' + this.game.inventoryManager.coins, 100, 80);
       ctx.font = "100px Indie Flower, cursive";
       ctx.fillText('Level: ' + this.level, document.body.clientWidth, document.body.clientHeight * 2 - 100);
       this.physics();
@@ -667,14 +744,14 @@ var Survival = function () {
           if (player.radius > dot.radius) {
             player.radius += 1;
             _this.game.inventoryManager.push({ name: dot.element, quantity: 1 });
-            if (true) {
+            if (_this.game.animationManager.animations.length > 0) {
               _this.currentCombo += 1;
-              _this.coins += _this.currentCombo;
-              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, 'Combo: +' + _this.currentCombo + ' ' + dot.element));
+              _this.game.inventoryManager.addCoins(1 * _this.currentCombo);
+              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, 'Combo: +' + _this.currentCombo + ' Coins and ' + dot.element));
             } else {
               _this.currentCombo = 1;
-              _this.coins += 1;
-              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, '+1 ' + dot.element));
+              _this.game.inventoryManager.addCoins(1);
+              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, '+1 Coins and ' + dot.element));
             }
             dot.destroy = true;
           } else {
@@ -804,8 +881,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  *   }
  *
  * */
-var inventoryStub = [{ quantity: 4, name: 'hydrogen' }, { quantity: 2, name: 'helium' }];
-console.log(inventoryStub);
 var playerStub = {
   username: 'John',
   password: 'Rodney',
@@ -813,12 +888,14 @@ var playerStub = {
   inventory: []
 };
 
+var inventoryStub = [{ name: "hydrogen", quantity: 1 }, { name: "lithium", quantity: 1 }, { name: "helium", quantity: 1 }, { name: "beryllium", quantity: 1 }];
+
 var InventoryItem = function () {
   function InventoryItem(name, quantity) {
     _classCallCheck(this, InventoryItem);
 
-    this.quanitity = qauntity;
-    this.nam = name;
+    this.quantity = quantity;
+    this.name = name;
   }
 
   _createClass(InventoryItem, [{
@@ -848,7 +925,8 @@ var InventoryManager = function () {
   function InventoryManager() {
     _classCallCheck(this, InventoryManager);
 
-    this.playerInventory = [];
+    console.log(this);
+    this.playerInventory = inventoryStub;
     this.coins = 0;
   }
 
@@ -857,30 +935,29 @@ var InventoryManager = function () {
     value: function updateItem(item) {
       var playerInventory = this.playerInventory;
 
-      console.log('before update', playerInventory, this);
       this.playerInventory = playerInventory.map(function (ownedItem) {
-        console.log(item.name, ownedItem.name, item.quantity + ownedItem.quantity, { name: item.name, quantity: item.quantity + ownedItem.quantity });
-        return item.name === ownedItem.name ? { name: item.name, quantity: ownedItem.quantity + item.quantity } : ownedItem;
+        return item.name === ownedItem.name ? new InventoryItem(item.name, ownedItem.quantity + item.quantity) : ownedItem;
       });
-      console.log('after update', playerInventory, this);
+    }
+  }, {
+    key: 'addCoins',
+    value: function addCoins(quantity) {
+      this.coins += quantity;
     }
   }, {
     key: 'push',
     value: function push(item) {
-      console.log(item);
       var playerInventory = this.playerInventory;
 
       var hasItem = playerInventory.filter(function (ownedItem) {
         return ownedItem.name === item.name;
       }).length > 0;
+
       if (hasItem) {
-        console.log('has item');
         this.updateItem(item);
       } else {
-        console.log('new item');
-        playerInventory.push(item);
+        playerInventory.push(new InventoryItem(item.name, item.quantity));
       }
-      console.log(playerInventory);
     }
   }]);
 

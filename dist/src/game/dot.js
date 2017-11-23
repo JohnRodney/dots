@@ -60,7 +60,7 @@ var Dot = function () {
   }, {
     key: 'randomElement',
     value: function randomElement() {
-      var elements = ['hydrogen', 'helium'];
+      var elements = ['hydrogen', 'helium', 'lithium', 'beryllium'];
       var floor = Math.floor,
           random = Math.random;
 

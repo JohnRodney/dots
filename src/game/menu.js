@@ -30,12 +30,16 @@ export default class Menu {
     const { menuItems, parent } = this;
     const item = menuItems.filter(item => item.collide(x * 2, y * 2)).pop();
 
-    if (parent.state !== 'high-scores' && parent.state !== 'main-menu') {
+    if (parent.state !== 'high-scores' && parent.state !== 'main-menu' && parent.state !== 'store') {
       return false;
     } if (parent.state === 'high-scores') {
       parent.state = "main-menu"
+    } else if (parent.state === 'store') {
+      parent.state = "main-menu"
     } else if (item && item.text === 'Survival') {
       parent.state = 'start-survival';
+    } else if(item.text === 'Store') {
+      parent.state = 'store';
     } else if(item.text === 'High Scores') {
       if (window.deployment === 'development') {
         parent.state = 'high-scores';

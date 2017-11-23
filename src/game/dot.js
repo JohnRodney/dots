@@ -29,7 +29,7 @@ export default class Dot {
   }
 
   randomElement() {
-    const elements = ['hydrogen', 'helium'];
+    const elements = ['hydrogen', 'helium', 'lithium', 'beryllium'];
     const { floor, random } = Math;
     return elements[floor(random() *elements.length)];
   }

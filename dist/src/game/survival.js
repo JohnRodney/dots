@@ -94,7 +94,7 @@ var Survival = function () {
       ctx.fillStyle = 'yellow';
       ctx.font = "30px Arial";
       ctx.fillText('Score: ' + player.radius, 100, 50);
-      ctx.fillText('Coins: ' + this.coins, 100, 80);
+      ctx.fillText('Coins: ' + this.game.inventoryManager.coins, 100, 80);
       ctx.font = "100px Indie Flower, cursive";
       ctx.fillText('Level: ' + this.level, document.body.clientWidth, document.body.clientHeight * 2 - 100);
       this.physics();
@@ -126,14 +126,14 @@ var Survival = function () {
           if (player.radius > dot.radius) {
             player.radius += 1;
             _this.game.inventoryManager.push({ name: dot.element, quantity: 1 });
-            if (true) {
+            if (_this.game.animationManager.animations.length > 0) {
               _this.currentCombo += 1;
-              _this.coins += _this.currentCombo;
-              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, 'Combo: +' + _this.currentCombo + ' ' + dot.element));
+              _this.game.inventoryManager.addCoins(1 * _this.currentCombo);
+              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, 'Combo: +' + _this.currentCombo + ' Coins and ' + dot.element));
             } else {
               _this.currentCombo = 1;
-              _this.coins += 1;
-              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, '+1 ' + dot.element));
+              _this.game.inventoryManager.addCoins(1);
+              _this.game.animationManager.push(new _textAnimation2.default(1000, player.x, player.y, '+1 Coins and ' + dot.element));
             }
             dot.destroy = true;
           } else {

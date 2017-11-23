@@ -50,7 +50,7 @@ export default class Survival {
     ctx.fillStyle = 'yellow';
     ctx.font = "30px Arial";
     ctx.fillText(`Score: ${player.radius}`, 100, 50);
-    ctx.fillText(`Coins: ${this.coins}`, 100, 80);
+    ctx.fillText(`Coins: ${this.game.inventoryManager.coins}`, 100, 80);
     ctx.font = "100px Indie Flower, cursive";
     ctx.fillText(`Level: ${this.level}`, document.body.clientWidth, document.body.clientHeight * 2 - 100);
     this.physics();
@@ -76,14 +76,14 @@ export default class Survival {
         if (player.radius > dot.radius) {
           player.radius += 1;
           this.game.inventoryManager.push({ name: dot.element, quantity: 1 });
-          if (true) {
+          if (this.game.animationManager.animations.length > 0) {
             this.currentCombo += 1;
-            this.coins += this.currentCombo;
-            this.game.animationManager.push(new TextAnimation(1000, player.x, player.y, `Combo: +${this.currentCombo} ${dot.element}`))
+            this.game.inventoryManager.addCoins(1 * this.currentCombo);
+            this.game.animationManager.push(new TextAnimation(1000, player.x, player.y, `Combo: +${this.currentCombo} Coins and ${dot.element}`))
           } else {
             this.currentCombo = 1;
-            this.coins += 1;
-            this.game.animationManager.push(new TextAnimation(1000, player.x, player.y, `+1 ${dot.element}`))
+            this.game.inventoryManager.addCoins(1);
+            this.game.animationManager.push(new TextAnimation(1000, player.x, player.y, `+1 Coins and ${dot.element}`))
           }
           dot.destroy = true;
         } else {

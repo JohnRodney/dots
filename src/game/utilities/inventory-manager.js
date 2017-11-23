@@ -20,10 +20,17 @@ const playerStub = {
   inventory: []
 }
 
+const inventoryStub = [
+  { name: "hydrogen", quantity: 1 },
+  { name: "lithium", quantity: 1 },
+  { name: "helium", quantity: 1 },
+  { name: "beryllium", quantity: 1 },
+];
+
 class InventoryItem {
   constructor(name, quantity) {
-    this.quanitity = qauntity;
-    this.nam = name;
+    this.quantity = quantity;
+    this.name = name;
   }
 
   addTo(quantity) {
@@ -42,7 +49,8 @@ class InventoryItem {
 
 export default class InventoryManager {
   constructor() {
-    this.playerInventory = [];
+    console.log(this)
+    this.playerInventory = inventoryStub;
     this.coins = 0;
   }
 
@@ -50,18 +58,23 @@ export default class InventoryManager {
     let { playerInventory } = this;
     this.playerInventory = playerInventory.map(ownedItem => {
       return item.name === ownedItem.name ?
-        { name: item.name, quantity: ownedItem.quantity + item.quantity } :
+        new InventoryItem(item.name, ownedItem.quantity + item.quantity):
         ownedItem
     });
+  }
+
+  addCoins(quantity) {
+    this.coins += quantity;
   }
 
   push(item) {
     const { playerInventory } = this;
     const hasItem = playerInventory.filter(ownedItem => ownedItem.name === item.name).length > 0;
+
     if (hasItem) {
       this.updateItem(item);
     } else {
-      playerInventory.push(item);
+      playerInventory.push(new InventoryItem(item.name, item.quantity));
     }
   }
 }

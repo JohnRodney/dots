@@ -30,12 +30,14 @@ var playerStub = {
   inventory: []
 };
 
+var inventoryStub = [{ name: "hydrogen", quantity: 1 }, { name: "lithium", quantity: 1 }, { name: "helium", quantity: 1 }, { name: "beryllium", quantity: 1 }];
+
 var InventoryItem = function () {
   function InventoryItem(name, quantity) {
     _classCallCheck(this, InventoryItem);
 
-    this.quanitity = qauntity;
-    this.nam = name;
+    this.quantity = quantity;
+    this.name = name;
   }
 
   _createClass(InventoryItem, [{
@@ -65,7 +67,8 @@ var InventoryManager = function () {
   function InventoryManager() {
     _classCallCheck(this, InventoryManager);
 
-    this.playerInventory = [];
+    console.log(this);
+    this.playerInventory = inventoryStub;
     this.coins = 0;
   }
 
@@ -75,8 +78,13 @@ var InventoryManager = function () {
       var playerInventory = this.playerInventory;
 
       this.playerInventory = playerInventory.map(function (ownedItem) {
-        return item.name === ownedItem.name ? { name: item.name, quantity: ownedItem.quantity + item.quantity } : ownedItem;
+        return item.name === ownedItem.name ? new InventoryItem(item.name, ownedItem.quantity + item.quantity) : ownedItem;
       });
+    }
+  }, {
+    key: 'addCoins',
+    value: function addCoins(quantity) {
+      this.coins += quantity;
     }
   }, {
     key: 'push',
@@ -86,10 +94,11 @@ var InventoryManager = function () {
       var hasItem = playerInventory.filter(function (ownedItem) {
         return ownedItem.name === item.name;
       }).length > 0;
+
       if (hasItem) {
         this.updateItem(item);
       } else {
-        playerInventory.push(item);
+        playerInventory.push(new InventoryItem(item.name, item.quantity));
       }
     }
   }]);
