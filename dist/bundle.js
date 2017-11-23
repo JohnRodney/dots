@@ -666,7 +666,7 @@ var Survival = function () {
         if (_this.distance(dot) <= player.radius * _this.scale + dot.radius * _this.scale) {
           if (player.radius > dot.radius) {
             player.radius += 1;
-            // this.playerInventory.push(dot.element);
+            _this.game.inventoryManager.push({ name: dot.element, quantity: 1 });
             if (true) {
               _this.currentCombo += 1;
               _this.coins += _this.currentCombo;
@@ -779,20 +779,113 @@ var InputManager = function () {
 
 exports.default = InputManager;
 },{}],9:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var InventoryManager = function InventoryManager() {
-  _classCallCheck(this, InventoryManager);
-
-  this.playerInventory = [];
-  this.coins = 0;
+/* inventory
+ *   Player {
+ *     username,
+ *     password,
+ *     _id,
+ *     inventory: [
+ *       <InventoryItem>
+ *     ]
+ *   }
+ *   InventoryItem {
+ *     name,
+ *     qauntity,
+ *   }
+ *
+ * */
+var inventoryStub = [{ quantity: 4, name: 'hydrogen' }, { quantity: 2, name: 'helium' }];
+console.log(inventoryStub);
+var playerStub = {
+  username: 'John',
+  password: 'Rodney',
+  _id: 'a;lkjasdf',
+  inventory: []
 };
+
+var InventoryItem = function () {
+  function InventoryItem(name, quantity) {
+    _classCallCheck(this, InventoryItem);
+
+    this.quanitity = qauntity;
+    this.nam = name;
+  }
+
+  _createClass(InventoryItem, [{
+    key: 'addTo',
+    value: function addTo(quantity) {
+      this.quanitity += quantity;
+    }
+  }, {
+    key: 'getAsItemSchema',
+    value: function getAsItemSchema() {
+      var quantity = this.quantity,
+          name = this.name;
+
+      return { quantity: quantity, name: name };
+    }
+  }, {
+    key: 'saveToPlayer',
+    value: function saveToPlayer(player) {
+      player.inventory.push(this.getAsItemSchema());
+    }
+  }]);
+
+  return InventoryItem;
+}();
+
+var InventoryManager = function () {
+  function InventoryManager() {
+    _classCallCheck(this, InventoryManager);
+
+    this.playerInventory = [];
+    this.coins = 0;
+  }
+
+  _createClass(InventoryManager, [{
+    key: 'updateItem',
+    value: function updateItem(item) {
+      var playerInventory = this.playerInventory;
+
+      console.log('before update', playerInventory, this);
+      this.playerInventory = playerInventory.map(function (ownedItem) {
+        console.log(item.name, ownedItem.name, item.quantity + ownedItem.quantity, { name: item.name, quantity: item.quantity + ownedItem.quantity });
+        return item.name === ownedItem.name ? { name: item.name, quantity: ownedItem.quantity + item.quantity } : ownedItem;
+      });
+      console.log('after update', playerInventory, this);
+    }
+  }, {
+    key: 'push',
+    value: function push(item) {
+      console.log(item);
+      var playerInventory = this.playerInventory;
+
+      var hasItem = playerInventory.filter(function (ownedItem) {
+        return ownedItem.name === item.name;
+      }).length > 0;
+      if (hasItem) {
+        console.log('has item');
+        this.updateItem(item);
+      } else {
+        console.log('new item');
+        playerInventory.push(item);
+      }
+      console.log(playerInventory);
+    }
+  }]);
+
+  return InventoryManager;
+}();
 
 exports.default = InventoryManager;
 },{}],10:[function(require,module,exports){

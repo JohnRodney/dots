@@ -125,7 +125,7 @@ var Survival = function () {
         if (_this.distance(dot) <= player.radius * _this.scale + dot.radius * _this.scale) {
           if (player.radius > dot.radius) {
             player.radius += 1;
-            // this.playerInventory.push(dot.element);
+            _this.game.inventoryManager.push({ name: dot.element, quantity: 1 });
             if (true) {
               _this.currentCombo += 1;
               _this.coins += _this.currentCombo;

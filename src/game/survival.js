@@ -75,7 +75,7 @@ export default class Survival {
       if (this.distance(dot) <= player.radius * this.scale + dot.radius * this.scale) {
         if (player.radius > dot.radius) {
           player.radius += 1;
-          // this.playerInventory.push(dot.element);
+          this.game.inventoryManager.push({ name: dot.element, quantity: 1 });
           if (true) {
             this.currentCombo += 1;
             this.coins += this.currentCombo;
