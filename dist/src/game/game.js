@@ -73,6 +73,36 @@ var Game = function () {
       this.player.draw(this.ctx, 5);
     }
   }, {
+    key: 'renderHighScores',
+    value: function renderHighScores() {
+      var _this = this;
+
+      var ctx = this.ctx;
+
+      ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      var startY = 200;
+      var scoreHeight = 100;
+      var top10 = this.scores.filter(function (scores, i) {
+        return i < 10;
+      });
+
+      top10.forEach(function (score, i) {
+        ctx.strokeStyle = 'white';
+        ctx.fillStyle = 'rgba(150, 201, 230, .5)';
+        ctx.beginPath();
+        ctx.rect(_this.canvas.width / 2 - 300, startY + scoreHeight * i, 600, scoreHeight - 10);
+        ctx.stroke();
+        ctx.fill();
+        ctx.closePath();
+        ctx.beginPath();
+        ctx.fillStyle = 'yellow';
+        ctx.font = "50px Indie Flower, cursive";
+        ctx.fillText(i + 1 + '.   ' + score.username + ':   ' + score.score, _this.canvas.width / 2, 60 + startY + scoreHeight * i);
+        ctx.closePath();
+      });
+      this.player.draw(this.ctx, 5);
+    }
+  }, {
     key: 'render',
     value: function render() {
       var ctx = this.ctx;
@@ -82,12 +112,15 @@ var Game = function () {
       } else if (this.state === 'start-survival') {
         this.survival = new _survival2.default(this.player, this);
         this.state = 'survival';
+      } else if (this.state === 'high-scores') {
+        this.renderHighScores();
       } else if (this.state === 'survival') {
         this.survival.play();
       } else if (this.state === 'gameover') {
         this.run();
         return false;
       }
+
       ctx.beginPath();
       ctx.fillStyle = 'yellow';
       ctx.font = "30px Indie Flower, cursive";

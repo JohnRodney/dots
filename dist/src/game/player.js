@@ -45,13 +45,16 @@ var Player = function () {
       ctx.beginPath();
       ctx.fillStyle = '#afafaf';
       ctx.moveTo(x, y);
-      ctx.arc(x, y, radius * scale, startAngle, endAngle);
       ctx.shadowColor = 'black';
       ctx.shadowBlur = 10;
       ctx.shadowOffsetX = 5;
       ctx.shadowOffsetY = 5;
+      var image = document.createElement('img');
+      image.src = window.location.origin + '/red-devil-skin.png';
+      // ctx.arc(x, y, radius * scale, startAngle, endAngle);
       ctx.stroke();
       ctx.fill();
+      ctx.drawImage(image, this.x - this.radius * 1.3 * scale, this.y - this.radius * 2 * scale, this.radius * 2.7 * scale, this.radius * 2 * 2 * scale);
       ctx.closePath();
     }
   }]);

@@ -35,6 +35,30 @@ export default class Game {
     this.player.draw(this.ctx, 5);
   }
 
+  renderHighScores() {
+    const { ctx } = this;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    const startY = 200;
+    const scoreHeight = 100;
+    const top10 = this.scores.filter((scores, i) => i < 10);
+
+    top10.forEach((score, i) => {
+      ctx.strokeStyle = 'white';
+      ctx.fillStyle = 'rgba(150, 201, 230, .5)';
+      ctx.beginPath()
+      ctx.rect(this.canvas.width / 2 - 300, startY + scoreHeight * i, 600, scoreHeight - 10);
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+      ctx.beginPath();
+      ctx.fillStyle = 'yellow';
+      ctx.font = "50px Indie Flower, cursive";
+      ctx.fillText(`${i+1}.   ${score.username}:   ${score.score}`, this.canvas.width / 2, 60 + startY + scoreHeight * i);
+      ctx.closePath();
+    });
+    this.player.draw(this.ctx, 5);
+  }
+
   render() {
     const { ctx } = this;
     if (this.state === 'main-menu') {
@@ -42,12 +66,15 @@ export default class Game {
     } else if (this.state === 'start-survival') {
       this.survival = new Survival(this.player, this);
       this.state = 'survival';
+    } else if (this.state === 'high-scores') {
+      this.renderHighScores();
     } else if (this.state === 'survival') {
       this.survival.play();
     } else if (this.state === 'gameover') {
       this.run();
       return false;
     }
+
     ctx.beginPath();
     ctx.fillStyle = 'yellow';
     ctx.font = "30px Indie Flower, cursive";
