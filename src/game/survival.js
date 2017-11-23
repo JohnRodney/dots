@@ -11,7 +11,7 @@ export default class Survival {
     this.scale = 1;
     this.currentCombo = 0;
     /* survival game mode stuff*/
-    this.maxDots = 100;
+    this.maxDots = 50;
     this.dots = [];
     for(let i = 0; i < this.maxDots; i++) {
       this.dots.push(new Dot(this.randomX(), this.randomY(), this.randomRadius(), 0, 2*Math.PI))
@@ -54,7 +54,7 @@ export default class Survival {
     ctx.font = "100px Indie Flower, cursive";
     ctx.fillText(`Level: ${this.level}`, document.body.clientWidth, document.body.clientHeight * 2 - 100);
     this.physics();
-    if (this.level * 10 + 10 < this.player.radius * this.scale) {
+    if (this.level * 30 + 30 < this.player.radius * this.scale) {
       this.scale /= 2;
       this.level++;
     }
@@ -103,6 +103,6 @@ export default class Survival {
     if (this.dots.length < this.maxDots) {
       this.dots.push(new Dot(this.randomX(), this.randomY(), this.randomRadius(), 0, 2*Math.PI))
     }
-    this.dots.forEach(dot => dot.move());
+    this.dots.forEach(dot => dot.move(this.game.delta));
   }
 }

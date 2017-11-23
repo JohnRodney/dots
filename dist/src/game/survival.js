@@ -31,7 +31,7 @@ var Survival = function () {
     this.scale = 1;
     this.currentCombo = 0;
     /* survival game mode stuff*/
-    this.maxDots = 100;
+    this.maxDots = 50;
     this.dots = [];
     for (var i = 0; i < this.maxDots; i++) {
       this.dots.push(new _dot2.default(this.randomX(), this.randomY(), this.randomRadius(), 0, 2 * Math.PI));
@@ -98,7 +98,7 @@ var Survival = function () {
       ctx.font = "100px Indie Flower, cursive";
       ctx.fillText('Level: ' + this.level, document.body.clientWidth, document.body.clientHeight * 2 - 100);
       this.physics();
-      if (this.level * 10 + 10 < this.player.radius * this.scale) {
+      if (this.level * 30 + 30 < this.player.radius * this.scale) {
         this.scale /= 2;
         this.level++;
       }
@@ -156,7 +156,7 @@ var Survival = function () {
         this.dots.push(new _dot2.default(this.randomX(), this.randomY(), this.randomRadius(), 0, 2 * Math.PI));
       }
       this.dots.forEach(function (dot) {
-        return dot.move();
+        return dot.move(_this.game.delta);
       });
     }
   }]);

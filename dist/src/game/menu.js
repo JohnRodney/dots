@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -6,98 +6,115 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _stubData = require('./utilities/stub-data');
+
+var _stubData2 = _interopRequireDefault(_stubData);
+
+var _menuItem = require('./utilities/menu-item');
+
+var _menuItem2 = _interopRequireDefault(_menuItem);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var dataStub = [{ "_id": "5a14d3365069fea02442183f", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "75" }, { "_id": "5a15b44fe094b7a08d1d3171", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "31" }, { "_id": "5a14d3615069fea024421840", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "30" }, { "_id": "5a14d2e45069fea02442183d", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "28" }, { "_id": "5a15b280e094b7a08d1d316d", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "24" }, { "_id": "5a14d2f45069fea02442183e", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "21" }, { "_id": "5a15b351e094b7a08d1d316e", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "174" }, { "_id": "5a15b436e094b7a08d1d3170", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "168" }, { "_id": "5a15b265e094b7a08d1d316b", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "15" }, { "_id": "5a15b26ce094b7a08d1d316c", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "12" }, { "_id": "5a15b25de094b7a08d1d316a", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "11" }, { "_id": "5a15b38fe094b7a08d1d316f", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "10" }];
-
-var MenuItem = function () {
-  function MenuItem(x, y, w, h, text) {
-    _classCallCheck(this, MenuItem);
-
-    this.x = x;
-    this.y = y;
-    this.width = w;
-    this.height = h;
-    this.text = text;
-  }
-
-  _createClass(MenuItem, [{
-    key: "draw",
-    value: function draw(ctx) {
-      ctx.fillText("" + this.text, this.x + this.width / 2, this.y + this.height / 2);
-    }
-  }, {
-    key: "collide",
-    value: function collide(x, y) {
-      return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
-    }
-  }]);
-
-  return MenuItem;
-}();
 
 var Menu = function () {
   function Menu(parent) {
-    var _this = this;
-
     _classCallCheck(this, Menu);
 
     this.parent = parent;
     this.menuItems = [];
-
-    ['Survival', 'High Scores', 'Story Mode', "Store"].forEach(function (item, index) {
-      _this.menuItems.push(new MenuItem(document.body.clientWidth / 2, 300 + 200 * index, document.body.clientWidth, 200, item));
-    });
-
-    document.body.addEventListener("click", function (e) {
-      return _this.handleClick(e);
-    });
+    this.font = "100px Indie Flower, cursive";
+    this.menuLabels = ['Survival', 'High Scores', 'Story Mode', 'Store'];
+    this.buildMenu();
   }
 
   _createClass(Menu, [{
-    key: "handleClick",
-    value: function handleClick(e) {
-      var _this2 = this;
+    key: 'buildMenu',
+    value: function buildMenu() {
+      var menuLabels = this.menuLabels,
+          menuItems = this.menuItems;
+      var clientWidth = document.body.clientWidth;
 
+      menuLabels.forEach(function (item, index) {
+        var menuItem = new _menuItem2.default(clientWidth / 2, 300 + 200 * index, clientWidth, 200, item);
+        menuItems.push(menuItem);
+      });
+
+      this.registerEvents();
+    }
+  }, {
+    key: 'registerEvents',
+    value: function registerEvents() {
+      var _this = this;
+
+      document.body.addEventListener("click", function (e) {
+        return _this.handleClick(e);
+      });
+    }
+  }, {
+    key: 'handleClick',
+    value: function handleClick(e) {
       var x = e.x,
           y = e.y;
+      var menuItems = this.menuItems,
+          parent = this.parent;
 
-      var item = this.menuItems.filter(function (item) {
+      var item = menuItems.filter(function (item) {
         return item.collide(x * 2, y * 2);
       }).pop();
-      if (this.parent.state === 'high-scores') {
-        this.parent.state = "main-menu";
-      } else if (item && item.text === 'Survival') {
-        this.parent.state = 'start-survival';
-      } else if (item.text === 'High Scores') {
 
-        $.get(window.location.origin + "/dots/highscores", function (data) {
-          _this2.parent.state = 'high-scores';
-          _this2.parent.scores = data;
-        });
-        /* devmode
-        this.parent.state = 'high-scores';
-        this.parent.scores = dataStub;
-        */
+      if (parent.state !== 'high-scores' && parent.state !== 'main-menu') {
+        return false;
+      }if (parent.state === 'high-scores') {
+        parent.state = "main-menu";
+      } else if (item && item.text === 'Survival') {
+        parent.state = 'start-survival';
+      } else if (item.text === 'High Scores') {
+        if (window.deployment === 'development') {
+          parent.state = 'high-scores';
+          parent.scores = _stubData2.default;
+        } else {
+          $.get(window.location.origin + '/dots/highscores', function (data) {
+            parent.state = 'high-scores';
+            parent.scores = data;
+          });
+        }
       }
     }
   }, {
-    key: "draw",
-    value: function draw(ctx) {
+    key: 'drawBackground',
+    value: function drawBackground(ctx) {
+      var _document$body = document.body,
+          clientWidth = _document$body.clientWidth,
+          clientHeight = _document$body.clientHeight;
+
       ctx.beginPath();
       ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-      ctx.fillRect(100, 100, document.body.clientWidth * 2 - 200, document.body.clientHeight * 2 - 200);
+      ctx.fillRect(100, 100, clientWidth * 2 - 200, clientHeight * 2 - 200);
       ctx.closePath();
+    }
+  }, {
+    key: 'drawMenuItems',
+    value: function drawMenuItems(ctx) {
+      var menuItems = this.menuItems,
+          font = this.font;
+
 
       ctx.beginPath();
       ctx.fillStyle = 'white';
       ctx.textAlign = 'center';
-      ctx.font = "100px Indie Flower, cursive";
-      this.menuItems.forEach(function (item) {
+      ctx.font = font;
+      menuItems.forEach(function (item) {
         return item.draw(ctx);
       });
-
       ctx.closePath();
+    }
+  }, {
+    key: 'draw',
+    value: function draw(ctx) {
+      this.drawBackground(ctx);
+      this.drawMenuItems(ctx);
     }
   }]);
 

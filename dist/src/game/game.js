@@ -44,6 +44,8 @@ var Game = function () {
   function Game() {
     _classCallCheck(this, Game);
 
+    this.delta = 0;
+    this.lastRender = new Date().getTime();
     this.username = (0, _utilityFunctions.getCookie)('username');
     this._id = (0, _utilityFunctions.getCookie)('_id');
     this.animationManager = new _animationManager2.default();
@@ -105,6 +107,9 @@ var Game = function () {
   }, {
     key: 'render',
     value: function render() {
+      var currentTime = new Date().getTime();
+      this.delta = (currentTime - this.lastRender) / 1000;
+      this.lastRender = currentTime;
       var ctx = this.ctx;
 
       if (this.state === 'main-menu') {

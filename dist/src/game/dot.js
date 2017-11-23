@@ -14,6 +14,10 @@ var _shadeColor = require('./utilities/shade-color');
 
 var _shadeColor2 = _interopRequireDefault(_shadeColor);
 
+var _playerSkins = require('./utilities/player-skins');
+
+var _playerSkins2 = _interopRequireDefault(_playerSkins);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -21,6 +25,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var Dot = function () {
   function Dot(x, y, radius, startAngle, endAngle) {
     _classCallCheck(this, Dot);
+
+    var floor = Math.floor,
+        random = Math.random;
 
     this.scale = 1;
     this.x = x;
@@ -32,13 +39,23 @@ var Dot = function () {
     this.color = this.colors.random();
     this.direction = this.randomDirection();
     this.element = this.randomElement();
+    this.texture = _playerSkins2.default[floor(random() * _playerSkins2.default.length)];
+    this.image = document.createElement('img');
+    this.image.src = '' + window.location.origin + this.texture.path;
   }
 
   _createClass(Dot, [{
     key: 'move',
-    value: function move() {
-      this.x += this.direction.x;
-      this.y += this.direction.y;
+    value: function move(delta) {
+      var random = Math.random,
+          floor = Math.floor;
+
+      var dir = floor(random() * 100) === 9;
+      if (dir) {
+        this.direction.y *= -1;
+      }
+      this.x += this.direction.x * delta;
+      this.y += this.direction.y * delta;
     }
   }, {
     key: 'randomElement',
@@ -52,7 +69,7 @@ var Dot = function () {
   }, {
     key: 'randomDirection',
     value: function randomDirection() {
-      var maxSpeed = 6;
+      var maxSpeed = 300;
       var floor = Math.floor,
           random = Math.random;
 
@@ -74,11 +91,15 @@ var Dot = function () {
   }, {
     key: 'draw',
     value: function draw(ctx, scale) {
+      var floor = Math.floor,
+          random = Math.random;
       var x = this.x,
           y = this.y,
           radius = this.radius,
           startAngle = this.startAngle,
           endAngle = this.endAngle;
+      var texture = this.texture,
+          image = this.image;
 
       if (scale !== this.scale) {
         this.scale = scale;
@@ -88,14 +109,18 @@ var Dot = function () {
       ctx.fillStyle = this.color;
       ctx.moveTo(x, y);
       ctx.arc(x, y, radius * scale, startAngle, endAngle);
+      ctx.stroke();
+      ctx.fill();
+
       ctx.shadowColor = '#343434';
       ctx.shadowBlur = 5;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
       ctx.stroke();
       ctx.fill();
+      ctx.drawImage(image, this.x - this.radius * texture.xOffSet * scale, this.y - this.radius * texture.yOffSet * scale, this.radius * texture.wOffSet * scale, this.radius * 2 * texture.hOffSet * scale);
       ctx.closePath();
-      this.shade(ctx, 3, scale);
+      // this.shade(ctx, 3, scale);
     }
   }, {
     key: 'shade',

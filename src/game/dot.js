@@ -1,8 +1,10 @@
 import Colors from './colors.js';
 import shadeColor2 from './utilities/shade-color';
+import playerSkins from './utilities/player-skins';
 
 export default class Dot {
   constructor(x, y, radius, startAngle, endAngle) {
+    const { floor, random } = Math;
     this.scale = 1;
     this.x = x;
     this.y = y;
@@ -13,11 +15,17 @@ export default class Dot {
     this.color = this.colors.random();
     this.direction = this.randomDirection();
     this.element = this.randomElement();
+    this.texture = playerSkins[floor(random() * playerSkins.length)];
+    this.image = document.createElement('img');
+    this.image.src = `${window.location.origin}${this.texture.path}`
   }
 
-  move() {
-    this.x += this.direction.x;
-    this.y += this.direction.y;
+  move(delta) {
+    const { random, floor } = Math;
+    const dir = floor(random() * 100) === 9;
+    if (dir) { this.direction.y *= -1; }
+    this.x += this.direction.x * delta;
+    this.y += this.direction.y * delta;
   }
 
   randomElement() {
@@ -27,7 +35,7 @@ export default class Dot {
   }
 
   randomDirection() {
-    const maxSpeed = 6;
+    const maxSpeed = 300;
     const { floor, random } = Math;
     let xDir = floor(random() * (maxSpeed * 2)) - maxSpeed;
     let yDir = floor(random() * (maxSpeed * 2)) - maxSpeed;
@@ -42,21 +50,33 @@ export default class Dot {
   }
 
   draw(ctx, scale) {
+    const { floor, random } = Math;
     const { x, y, radius, startAngle, endAngle } = this;
+    const { texture, image } = this;
     if (scale !== this.scale) { this.scale = scale; }
     ctx.beginPath();
     ctx.strokeStyle = this.color;
     ctx.fillStyle = this.color;
     ctx.moveTo(x, y);
     ctx.arc(x, y, radius * scale, startAngle, endAngle);
+    ctx.stroke();
+    ctx.fill();
+
     ctx.shadowColor = '#343434';
     ctx.shadowBlur = 5;
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
     ctx.stroke();
     ctx.fill();
+    ctx.drawImage(
+      image,
+      this.x - (this.radius * texture.xOffSet) * scale,
+      this.y - (this.radius * texture.yOffSet) * scale,
+      (this.radius * texture.wOffSet) * scale,
+      (this.radius * 2 * texture.hOffSet) * scale
+    );
     ctx.closePath();
-    this.shade(ctx, 3, scale);
+    // this.shade(ctx, 3, scale);
   }
   shade(ctx, times, scale) {
     const { x, y, radius, startAngle, endAngle } = this;

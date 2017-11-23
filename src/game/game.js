@@ -9,6 +9,8 @@ import { getCookie } from './utilities/utility-functions';
 
 export default class Game {
   constructor() {
+    this.delta = 0;
+    this.lastRender = new Date().getTime();
     this.username = getCookie('username');
     this._id = getCookie('_id');
     this.animationManager = new AnimationManager();
@@ -60,6 +62,9 @@ export default class Game {
   }
 
   render() {
+    const currentTime = new Date().getTime();
+    this.delta = (currentTime - this.lastRender) / 1000;
+    this.lastRender = currentTime;
     const { ctx } = this;
     if (this.state === 'main-menu') {
       this.gameMenu();

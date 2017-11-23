@@ -48,6 +48,10 @@ var _shadeColor = require('./utilities/shade-color');
 
 var _shadeColor2 = _interopRequireDefault(_shadeColor);
 
+var _playerSkins = require('./utilities/player-skins');
+
+var _playerSkins2 = _interopRequireDefault(_playerSkins);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -55,6 +59,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var Dot = function () {
   function Dot(x, y, radius, startAngle, endAngle) {
     _classCallCheck(this, Dot);
+
+    var floor = Math.floor,
+        random = Math.random;
 
     this.scale = 1;
     this.x = x;
@@ -66,13 +73,23 @@ var Dot = function () {
     this.color = this.colors.random();
     this.direction = this.randomDirection();
     this.element = this.randomElement();
+    this.texture = _playerSkins2.default[floor(random() * _playerSkins2.default.length)];
+    this.image = document.createElement('img');
+    this.image.src = '' + window.location.origin + this.texture.path;
   }
 
   _createClass(Dot, [{
     key: 'move',
-    value: function move() {
-      this.x += this.direction.x;
-      this.y += this.direction.y;
+    value: function move(delta) {
+      var random = Math.random,
+          floor = Math.floor;
+
+      var dir = floor(random() * 100) === 9;
+      if (dir) {
+        this.direction.y *= -1;
+      }
+      this.x += this.direction.x * delta;
+      this.y += this.direction.y * delta;
     }
   }, {
     key: 'randomElement',
@@ -86,7 +103,7 @@ var Dot = function () {
   }, {
     key: 'randomDirection',
     value: function randomDirection() {
-      var maxSpeed = 6;
+      var maxSpeed = 300;
       var floor = Math.floor,
           random = Math.random;
 
@@ -108,11 +125,15 @@ var Dot = function () {
   }, {
     key: 'draw',
     value: function draw(ctx, scale) {
+      var floor = Math.floor,
+          random = Math.random;
       var x = this.x,
           y = this.y,
           radius = this.radius,
           startAngle = this.startAngle,
           endAngle = this.endAngle;
+      var texture = this.texture,
+          image = this.image;
 
       if (scale !== this.scale) {
         this.scale = scale;
@@ -122,14 +143,18 @@ var Dot = function () {
       ctx.fillStyle = this.color;
       ctx.moveTo(x, y);
       ctx.arc(x, y, radius * scale, startAngle, endAngle);
+      ctx.stroke();
+      ctx.fill();
+
       ctx.shadowColor = '#343434';
       ctx.shadowBlur = 5;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
       ctx.stroke();
       ctx.fill();
+      ctx.drawImage(image, this.x - this.radius * texture.xOffSet * scale, this.y - this.radius * texture.yOffSet * scale, this.radius * texture.wOffSet * scale, this.radius * 2 * texture.hOffSet * scale);
       ctx.closePath();
-      this.shade(ctx, 3, scale);
+      // this.shade(ctx, 3, scale);
     }
   }, {
     key: 'shade',
@@ -165,7 +190,7 @@ var Dot = function () {
 }();
 
 exports.default = Dot;
-},{"./colors.js":1,"./utilities/shade-color":10}],3:[function(require,module,exports){
+},{"./colors.js":1,"./utilities/player-skins":11,"./utilities/shade-color":12}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -212,6 +237,8 @@ var Game = function () {
   function Game() {
     _classCallCheck(this, Game);
 
+    this.delta = 0;
+    this.lastRender = new Date().getTime();
     this.username = (0, _utilityFunctions.getCookie)('username');
     this._id = (0, _utilityFunctions.getCookie)('_id');
     this.animationManager = new _animationManager2.default();
@@ -273,6 +300,9 @@ var Game = function () {
   }, {
     key: 'render',
     value: function render() {
+      var currentTime = new Date().getTime();
+      this.delta = (currentTime - this.lastRender) / 1000;
+      this.lastRender = currentTime;
       var ctx = this.ctx;
 
       if (this.state === 'main-menu') {
@@ -310,115 +340,7 @@ var Game = function () {
 }();
 
 exports.default = Game;
-},{"./dot":2,"./menu":4,"./player":5,"./survival":6,"./utilities/animation-manager":7,"./utilities/input-manager":8,"./utilities/inventory-manager":9,"./utilities/utility-functions":12}],4:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var dataStub = [{ "_id": "5a14d3365069fea02442183f", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "75" }, { "_id": "5a15b44fe094b7a08d1d3171", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "31" }, { "_id": "5a14d3615069fea024421840", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "30" }, { "_id": "5a14d2e45069fea02442183d", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "28" }, { "_id": "5a15b280e094b7a08d1d316d", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "24" }, { "_id": "5a14d2f45069fea02442183e", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "21" }, { "_id": "5a15b351e094b7a08d1d316e", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "174" }, { "_id": "5a15b436e094b7a08d1d3170", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "168" }, { "_id": "5a15b265e094b7a08d1d316b", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "15" }, { "_id": "5a15b26ce094b7a08d1d316c", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "12" }, { "_id": "5a15b25de094b7a08d1d316a", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "11" }, { "_id": "5a15b38fe094b7a08d1d316f", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "10" }];
-
-var MenuItem = function () {
-  function MenuItem(x, y, w, h, text) {
-    _classCallCheck(this, MenuItem);
-
-    this.x = x;
-    this.y = y;
-    this.width = w;
-    this.height = h;
-    this.text = text;
-  }
-
-  _createClass(MenuItem, [{
-    key: "draw",
-    value: function draw(ctx) {
-      ctx.fillText("" + this.text, this.x + this.width / 2, this.y + this.height / 2);
-    }
-  }, {
-    key: "collide",
-    value: function collide(x, y) {
-      return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
-    }
-  }]);
-
-  return MenuItem;
-}();
-
-var Menu = function () {
-  function Menu(parent) {
-    var _this = this;
-
-    _classCallCheck(this, Menu);
-
-    this.parent = parent;
-    this.menuItems = [];
-
-    ['Survival', 'High Scores', 'Story Mode', "Store"].forEach(function (item, index) {
-      _this.menuItems.push(new MenuItem(document.body.clientWidth / 2, 300 + 200 * index, document.body.clientWidth, 200, item));
-    });
-
-    document.body.addEventListener("click", function (e) {
-      return _this.handleClick(e);
-    });
-  }
-
-  _createClass(Menu, [{
-    key: "handleClick",
-    value: function handleClick(e) {
-      var _this2 = this;
-
-      var x = e.x,
-          y = e.y;
-
-      var item = this.menuItems.filter(function (item) {
-        return item.collide(x * 2, y * 2);
-      }).pop();
-      if (this.parent.state === 'high-scores') {
-        this.parent.state = "main-menu";
-      } else if (item && item.text === 'Survival') {
-        this.parent.state = 'start-survival';
-      } else if (item.text === 'High Scores') {
-
-        $.get(window.location.origin + "/dots/highscores", function (data) {
-          _this2.parent.state = 'high-scores';
-          _this2.parent.scores = data;
-        });
-        /* devmode
-        this.parent.state = 'high-scores';
-        this.parent.scores = dataStub;
-        */
-      }
-    }
-  }, {
-    key: "draw",
-    value: function draw(ctx) {
-      ctx.beginPath();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-      ctx.fillRect(100, 100, document.body.clientWidth * 2 - 200, document.body.clientHeight * 2 - 200);
-      ctx.closePath();
-
-      ctx.beginPath();
-      ctx.fillStyle = 'white';
-      ctx.textAlign = 'center';
-      ctx.font = "100px Indie Flower, cursive";
-      this.menuItems.forEach(function (item) {
-        return item.draw(ctx);
-      });
-
-      ctx.closePath();
-    }
-  }]);
-
-  return Menu;
-}();
-
-exports.default = Menu;
-},{}],5:[function(require,module,exports){
+},{"./dot":2,"./menu":4,"./player":5,"./survival":6,"./utilities/animation-manager":7,"./utilities/input-manager":8,"./utilities/inventory-manager":9,"./utilities/utility-functions":15}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -426,6 +348,137 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _stubData = require('./utilities/stub-data');
+
+var _stubData2 = _interopRequireDefault(_stubData);
+
+var _menuItem = require('./utilities/menu-item');
+
+var _menuItem2 = _interopRequireDefault(_menuItem);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Menu = function () {
+  function Menu(parent) {
+    _classCallCheck(this, Menu);
+
+    this.parent = parent;
+    this.menuItems = [];
+    this.font = "100px Indie Flower, cursive";
+    this.menuLabels = ['Survival', 'High Scores', 'Story Mode', 'Store'];
+    this.buildMenu();
+  }
+
+  _createClass(Menu, [{
+    key: 'buildMenu',
+    value: function buildMenu() {
+      var menuLabels = this.menuLabels,
+          menuItems = this.menuItems;
+      var clientWidth = document.body.clientWidth;
+
+      menuLabels.forEach(function (item, index) {
+        var menuItem = new _menuItem2.default(clientWidth / 2, 300 + 200 * index, clientWidth, 200, item);
+        menuItems.push(menuItem);
+      });
+
+      this.registerEvents();
+    }
+  }, {
+    key: 'registerEvents',
+    value: function registerEvents() {
+      var _this = this;
+
+      document.body.addEventListener("click", function (e) {
+        return _this.handleClick(e);
+      });
+    }
+  }, {
+    key: 'handleClick',
+    value: function handleClick(e) {
+      var x = e.x,
+          y = e.y;
+      var menuItems = this.menuItems,
+          parent = this.parent;
+
+      var item = menuItems.filter(function (item) {
+        return item.collide(x * 2, y * 2);
+      }).pop();
+
+      if (parent.state !== 'high-scores' && parent.state !== 'main-menu') {
+        return false;
+      }if (parent.state === 'high-scores') {
+        parent.state = "main-menu";
+      } else if (item && item.text === 'Survival') {
+        parent.state = 'start-survival';
+      } else if (item.text === 'High Scores') {
+        if (window.deployment === 'development') {
+          parent.state = 'high-scores';
+          parent.scores = _stubData2.default;
+        } else {
+          $.get(window.location.origin + '/dots/highscores', function (data) {
+            parent.state = 'high-scores';
+            parent.scores = data;
+          });
+        }
+      }
+    }
+  }, {
+    key: 'drawBackground',
+    value: function drawBackground(ctx) {
+      var _document$body = document.body,
+          clientWidth = _document$body.clientWidth,
+          clientHeight = _document$body.clientHeight;
+
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillRect(100, 100, clientWidth * 2 - 200, clientHeight * 2 - 200);
+      ctx.closePath();
+    }
+  }, {
+    key: 'drawMenuItems',
+    value: function drawMenuItems(ctx) {
+      var menuItems = this.menuItems,
+          font = this.font;
+
+
+      ctx.beginPath();
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.font = font;
+      menuItems.forEach(function (item) {
+        return item.draw(ctx);
+      });
+      ctx.closePath();
+    }
+  }, {
+    key: 'draw',
+    value: function draw(ctx) {
+      this.drawBackground(ctx);
+      this.drawMenuItems(ctx);
+    }
+  }]);
+
+  return Menu;
+}();
+
+exports.default = Menu;
+},{"./utilities/menu-item":10,"./utilities/stub-data":13}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _playerSkins = require('./utilities/player-skins');
+
+var _playerSkins2 = _interopRequireDefault(_playerSkins);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -437,7 +490,7 @@ var Player = function () {
 
     this.x = document.body.clientWidth / 2;
     this.y = document.body.clientHeight / 2;
-    this.radius = 10;
+    this.radius = 30;
     this.startAngle = 0;
     this.endAngle = 2 * Math.PI;
     document.body.addEventListener("mousemove", function (e) {
@@ -470,12 +523,13 @@ var Player = function () {
       ctx.shadowBlur = 10;
       ctx.shadowOffsetX = 5;
       ctx.shadowOffsetY = 5;
+      var texture = _playerSkins2.default[2];
       var image = document.createElement('img');
-      image.src = window.location.origin + '/red-devil-skin.png';
-      // ctx.arc(x, y, radius * scale, startAngle, endAngle);
+      image.src = '' + window.location.origin + texture.path;
+      ctx.arc(x, y, radius * scale, startAngle, endAngle);
       ctx.stroke();
       ctx.fill();
-      ctx.drawImage(image, this.x - this.radius * 1.3 * scale, this.y - this.radius * 2 * scale, this.radius * 2.7 * scale, this.radius * 2 * 2 * scale);
+      ctx.drawImage(image, this.x - this.radius * texture.xOffSet * scale, this.y - this.radius * texture.yOffSet * scale, this.radius * texture.wOffSet * scale, this.radius * 2 * texture.hOffSet * scale);
       ctx.closePath();
     }
   }]);
@@ -484,7 +538,7 @@ var Player = function () {
 }();
 
 exports.default = Player;
-},{}],6:[function(require,module,exports){
+},{"./utilities/player-skins":11}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -518,7 +572,7 @@ var Survival = function () {
     this.scale = 1;
     this.currentCombo = 0;
     /* survival game mode stuff*/
-    this.maxDots = 100;
+    this.maxDots = 50;
     this.dots = [];
     for (var i = 0; i < this.maxDots; i++) {
       this.dots.push(new _dot2.default(this.randomX(), this.randomY(), this.randomRadius(), 0, 2 * Math.PI));
@@ -585,7 +639,7 @@ var Survival = function () {
       ctx.font = "100px Indie Flower, cursive";
       ctx.fillText('Level: ' + this.level, document.body.clientWidth, document.body.clientHeight * 2 - 100);
       this.physics();
-      if (this.level * 10 + 10 < this.player.radius * this.scale) {
+      if (this.level * 30 + 30 < this.player.radius * this.scale) {
         this.scale /= 2;
         this.level++;
       }
@@ -643,7 +697,7 @@ var Survival = function () {
         this.dots.push(new _dot2.default(this.randomX(), this.randomY(), this.randomRadius(), 0, 2 * Math.PI));
       }
       this.dots.forEach(function (dot) {
-        return dot.move();
+        return dot.move(_this.game.delta);
       });
     }
   }]);
@@ -652,7 +706,7 @@ var Survival = function () {
 }();
 
 exports.default = Survival;
-},{"./dot":2,"./utilities/text-animation":11,"./utilities/utility-functions":12}],7:[function(require,module,exports){
+},{"./dot":2,"./utilities/text-animation":14,"./utilities/utility-functions":15}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -745,6 +799,62 @@ exports.default = InventoryManager;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var MenuItem = function () {
+  function MenuItem(x, y, w, h, text) {
+    _classCallCheck(this, MenuItem);
+
+    this.x = x;
+    this.y = y;
+    this.width = w;
+    this.height = h;
+    this.text = text;
+  }
+
+  _createClass(MenuItem, [{
+    key: "draw",
+    value: function draw(ctx) {
+      var text = this.text,
+          x = this.x,
+          y = this.y,
+          width = this.width,
+          height = this.height;
+
+      ctx.fillText("" + text, x + width / 2, y + height / 2);
+    }
+  }, {
+    key: "collide",
+    value: function collide(checkX, checkY) {
+      var x = this.x,
+          y = this.y,
+          width = this.width,
+          height = this.height;
+
+      return checkX > x && checkX < x + width && checkY > y && checkY < y + height;
+    }
+  }]);
+
+  return MenuItem;
+}();
+
+exports.default = MenuItem;
+},{}],11:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = [{ path: '/images/red-devil-skin.png', xOffSet: 1.3, yOffSet: 2, wOffSet: 2.7, hOffSet: 2 }, { path: '/images/green-goat.png', xOffSet: 1, yOffSet: 1, wOffSet: 2, hOffSet: 1 }, { path: '/images/blueface.png', xOffSet: 1, yOffSet: 1, wOffSet: 2, hOffSet: 1 }];
+},{}],12:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.default = shadeColor2;
@@ -757,7 +867,15 @@ function shadeColor2(color, percent) {
         B = f & 0x0000FF;
     return "#" + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
 }
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* a sample high score data response from the server */
+exports.default = [{ "_id": "5a14d3365069fea02442183f", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "75" }, { "_id": "5a15b44fe094b7a08d1d3171", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "31" }, { "_id": "5a14d3615069fea024421840", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "30" }, { "_id": "5a14d2e45069fea02442183d", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "28" }, { "_id": "5a15b280e094b7a08d1d316d", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "24" }, { "_id": "5a14d2f45069fea02442183e", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "21" }, { "_id": "5a15b351e094b7a08d1d316e", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "174" }, { "_id": "5a15b436e094b7a08d1d3170", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "168" }, { "_id": "5a15b265e094b7a08d1d316b", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "15" }, { "_id": "5a15b26ce094b7a08d1d316c", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "12" }, { "_id": "5a15b25de094b7a08d1d316a", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "11" }, { "_id": "5a15b38fe094b7a08d1d316f", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "10" }];
+},{}],14:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -799,7 +917,7 @@ var TextAnimation = function () {
 }();
 
 exports.default = TextAnimation;
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -826,7 +944,7 @@ function getCookie(cname) {
   }
   return "";
 }
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict';
 
 var _game = require('./game/game');
@@ -838,4 +956,4 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 window.onload = function () {
   return new _game2.default().run();
 };
-},{"./game/game":3}]},{},[13]);
+},{"./game/game":3}]},{},[16]);
