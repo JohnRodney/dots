@@ -97,7 +97,8 @@ var Dot = function () {
           y = this.y,
           radius = this.radius,
           startAngle = this.startAngle,
-          endAngle = this.endAngle;
+          endAngle = this.endAngle,
+          color = this.color;
       var texture = this.texture,
           image = this.image;
 
@@ -105,8 +106,8 @@ var Dot = function () {
         this.scale = scale;
       }
       ctx.beginPath();
-      ctx.strokeStyle = this.color;
-      ctx.fillStyle = this.color;
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
       ctx.moveTo(x, y);
       ctx.arc(x, y, radius * scale, startAngle, endAngle);
       ctx.stroke();
@@ -118,7 +119,7 @@ var Dot = function () {
       ctx.shadowOffsetY = 2;
       ctx.stroke();
       ctx.fill();
-      ctx.drawImage(image, this.x - this.radius * texture.xOffSet * scale, this.y - this.radius * texture.yOffSet * scale, this.radius * texture.wOffSet * scale, this.radius * 2 * texture.hOffSet * scale);
+      ctx.drawImage(image, x - radius * texture.xOffSet * scale, y - radius * texture.yOffSet * scale, radius * texture.wOffSet * scale, radius * 2 * texture.hOffSet * scale);
       ctx.closePath();
       // this.shade(ctx, 3, scale);
     }

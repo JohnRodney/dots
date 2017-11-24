@@ -51,12 +51,12 @@ export default class Dot {
 
   draw(ctx, scale) {
     const { floor, random } = Math;
-    const { x, y, radius, startAngle, endAngle } = this;
+    const { x, y, radius, startAngle, endAngle, color } = this;
     const { texture, image } = this;
     if (scale !== this.scale) { this.scale = scale; }
     ctx.beginPath();
-    ctx.strokeStyle = this.color;
-    ctx.fillStyle = this.color;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
     ctx.moveTo(x, y);
     ctx.arc(x, y, radius * scale, startAngle, endAngle);
     ctx.stroke();
@@ -70,14 +70,15 @@ export default class Dot {
     ctx.fill();
     ctx.drawImage(
       image,
-      this.x - (this.radius * texture.xOffSet) * scale,
-      this.y - (this.radius * texture.yOffSet) * scale,
-      (this.radius * texture.wOffSet) * scale,
-      (this.radius * 2 * texture.hOffSet) * scale
+      x - (radius * texture.xOffSet) * scale,
+      y - (radius * texture.yOffSet) * scale,
+      (radius * texture.wOffSet) * scale,
+      (radius * 2 * texture.hOffSet) * scale
     );
     ctx.closePath();
     // this.shade(ctx, 3, scale);
   }
+
   shade(ctx, times, scale) {
     const { x, y, radius, startAngle, endAngle } = this;
     let newRadius = radius * scale * .7;
