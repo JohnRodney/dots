@@ -78,6 +78,7 @@ var Survival = function () {
   }, {
     key: 'play',
     value: function play() {
+      console.log(this);
       var _game = this.game,
           ctx = _game.ctx,
           canvas = _game.canvas;

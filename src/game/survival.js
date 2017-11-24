@@ -41,6 +41,7 @@ export default class Survival {
   }
 
   play() {
+    console.log(this)
     const { ctx, canvas } = this.game;
     const { dots, scale, player } = this;
     ctx.clearRect(0, 0, canvas.width, canvas.height);

@@ -36,22 +36,23 @@ var _inventoryManager2 = _interopRequireDefault(_inventoryManager);
 
 var _utilityFunctions = require('./utilities/utility-functions');
 
+var _inventoryTextures = require('./utilities/inventory-textures');
+
+var _inventoryTextures2 = _interopRequireDefault(_inventoryTextures);
+
+var _store = require('./store');
+
+var _store2 = _interopRequireDefault(_store);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var inventoryTextures = {
-  hydrogen: { path: '/images/hydrogen.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
-  helium: { path: '/images/helium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
-  beryllium: { path: '/images/beryllium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
-  lithium: { path: '/images/lithium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
-  coin: { path: '/images/coin.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 }
-};
 
 var Game = function () {
   function Game() {
     _classCallCheck(this, Game);
 
+    this.store = new _store2.default(this);
     this.delta = 0;
     this.lastRender = new Date().getTime();
     this.username = (0, _utilityFunctions.getCookie)('username');
@@ -63,6 +64,7 @@ var Game = function () {
     this.state = 'main-menu';
     this.player = new _player2.default();
     this.setupCanvas();
+    this.survival = new _survival2.default(this.player, this);
   }
 
   _createClass(Game, [{
@@ -114,99 +116,62 @@ var Game = function () {
       this.player.draw(this.ctx, 5);
     }
   }, {
-    key: 'render',
-    value: function render() {
+    key: 'setDelta',
+    value: function setDelta() {
       var currentTime = new Date().getTime();
       this.delta = (currentTime - this.lastRender) / 1000;
       this.lastRender = currentTime;
-      var ctx = this.ctx;
-
-      if (this.state === 'main-menu') {
-        this.gameMenu();
-      } else if (this.state === 'start-survival') {
-        this.survival = new _survival2.default(this.player, this);
-        this.state = 'survival';
-      } else if (this.state === 'high-scores') {
-        this.renderHighScores();
-      } else if (this.state === 'store') {
-        this.renderStore();
-      } else if (this.state === 'survival') {
-        this.survival.play();
-      } else if (this.state === 'gameover') {
+    }
+  }, {
+    key: 'stateFunctionHash',
+    value: function stateFunctionHash() {
+      return {
+        'main-menu': this.gameMenu,
+        'start-survival': this.startSurvival,
+        'high-scores': this.renderHighScores,
+        'store': this.renderStore,
+        'survival': this.runSurvival
+      };
+    }
+  }, {
+    key: 'runSurvival',
+    value: function runSurvival() {
+      this.survival.play();
+    }
+  }, {
+    key: 'startSurvival',
+    value: function startSurvival() {
+      this.survival = new _survival2.default(this.player, this);
+      this.state = 'survival';
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      if (this.state === 'gameover') {
         this.run();
         return false;
       }
+
+      this.setDelta();
+      this.stateFunctionHash()[this.state].call(this);
+      this.renderPlayerText();
+      requestAnimationFrame(this.render.bind(this));
+    }
+  }, {
+    key: 'renderPlayerText',
+    value: function renderPlayerText() {
+      var ctx = this.ctx;
 
       ctx.beginPath();
       ctx.fillStyle = 'yellow';
       ctx.font = "30px Indie Flower, cursive";
       ctx.fillText('Player: ' + this.username, this.canvas.width / 2, 30);
       ctx.closePath();
-
-      requestAnimationFrame(this.render.bind(this));
     }
   }, {
     key: 'renderStore',
     value: function renderStore() {
-      var ctx = this.ctx,
-          canvas = this.canvas,
-          inventoryManager = this.inventoryManager;
-      var playerInventory = inventoryManager.playerInventory,
-          coins = inventoryManager.coins;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.beginPath();
-      ctx.fillStyle = 'rgba(100, 255, 255, .3)';
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = 'rgba(255, 255, 255, .9)';
-      ctx.rect(20, 80, String(coins).length * 10 + 400, 130);
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
-      ctx.beginPath();
-      var texture = inventoryTextures.coin;
-      var image = document.createElement('img');
-      image.src = '' + window.location.origin + texture.path;
-
-      ctx.drawImage(image, 40, 100, 90, 90);
-
-      ctx.fillStyle = 'yellow';
-      ctx.textBaseline = "middle";
-      ctx.font = "70px Indie Flower, cursive";
-      ctx.fillText('' + coins, 300, 150);
-      ctx.closePath();
-
-      playerInventory.forEach(function (item, i) {
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(100, 255, 255, .3)';
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = 'rgba(255, 255, 255, .9)';
-        ctx.rect(20, 280 * i + 300, 350, 260);
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-
-        ctx.beginPath();
-        var texture = inventoryTextures[item.name];
-        if (texture) {
-          var _image = document.createElement('img');
-          _image.src = '' + window.location.origin + texture.path;
-
-          ctx.drawImage(_image, 30, 280 * i + 300, 180, 180);
-        }
-
-        ctx.textAlign = 'left';
-        ctx.fillStyle = 'white';
-        ctx.textBaseline = "top";
-        ctx.font = "50px Indie Flower, cursive";
-        ctx.fillText('' + item.name, 60, 280 * i + 480);
-        ctx.fillText('' + item.quantity, 250, 280 * i + 350);
-        ctx.closePath();
-        ctx.textAlign = 'center';
-      });
-
-      this.player.draw(this.ctx, 3);
+      this.store.render();
     }
   }, {
     key: 'run',

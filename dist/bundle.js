@@ -131,7 +131,8 @@ var Dot = function () {
           y = this.y,
           radius = this.radius,
           startAngle = this.startAngle,
-          endAngle = this.endAngle;
+          endAngle = this.endAngle,
+          color = this.color;
       var texture = this.texture,
           image = this.image;
 
@@ -139,8 +140,8 @@ var Dot = function () {
         this.scale = scale;
       }
       ctx.beginPath();
-      ctx.strokeStyle = this.color;
-      ctx.fillStyle = this.color;
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
       ctx.moveTo(x, y);
       ctx.arc(x, y, radius * scale, startAngle, endAngle);
       ctx.stroke();
@@ -152,7 +153,7 @@ var Dot = function () {
       ctx.shadowOffsetY = 2;
       ctx.stroke();
       ctx.fill();
-      ctx.drawImage(image, this.x - this.radius * texture.xOffSet * scale, this.y - this.radius * texture.yOffSet * scale, this.radius * texture.wOffSet * scale, this.radius * 2 * texture.hOffSet * scale);
+      ctx.drawImage(image, x - radius * texture.xOffSet * scale, y - radius * texture.yOffSet * scale, radius * texture.wOffSet * scale, radius * 2 * texture.hOffSet * scale);
       ctx.closePath();
       // this.shade(ctx, 3, scale);
     }
@@ -190,7 +191,7 @@ var Dot = function () {
 }();
 
 exports.default = Dot;
-},{"./colors.js":1,"./utilities/player-skins":11,"./utilities/shade-color":12}],3:[function(require,module,exports){
+},{"./colors.js":1,"./utilities/player-skins":14,"./utilities/shade-color":15}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -229,22 +230,23 @@ var _inventoryManager2 = _interopRequireDefault(_inventoryManager);
 
 var _utilityFunctions = require('./utilities/utility-functions');
 
+var _inventoryTextures = require('./utilities/inventory-textures');
+
+var _inventoryTextures2 = _interopRequireDefault(_inventoryTextures);
+
+var _store = require('./store');
+
+var _store2 = _interopRequireDefault(_store);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var inventoryTextures = {
-  hydrogen: { path: '/images/hydrogen.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
-  helium: { path: '/images/helium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
-  beryllium: { path: '/images/beryllium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
-  lithium: { path: '/images/lithium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
-  coin: { path: '/images/coin.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 }
-};
 
 var Game = function () {
   function Game() {
     _classCallCheck(this, Game);
 
+    this.store = new _store2.default(this);
     this.delta = 0;
     this.lastRender = new Date().getTime();
     this.username = (0, _utilityFunctions.getCookie)('username');
@@ -256,6 +258,7 @@ var Game = function () {
     this.state = 'main-menu';
     this.player = new _player2.default();
     this.setupCanvas();
+    this.survival = new _survival2.default(this.player, this);
   }
 
   _createClass(Game, [{
@@ -307,99 +310,62 @@ var Game = function () {
       this.player.draw(this.ctx, 5);
     }
   }, {
-    key: 'render',
-    value: function render() {
+    key: 'setDelta',
+    value: function setDelta() {
       var currentTime = new Date().getTime();
       this.delta = (currentTime - this.lastRender) / 1000;
       this.lastRender = currentTime;
-      var ctx = this.ctx;
-
-      if (this.state === 'main-menu') {
-        this.gameMenu();
-      } else if (this.state === 'start-survival') {
-        this.survival = new _survival2.default(this.player, this);
-        this.state = 'survival';
-      } else if (this.state === 'high-scores') {
-        this.renderHighScores();
-      } else if (this.state === 'store') {
-        this.renderStore();
-      } else if (this.state === 'survival') {
-        this.survival.play();
-      } else if (this.state === 'gameover') {
+    }
+  }, {
+    key: 'stateFunctionHash',
+    value: function stateFunctionHash() {
+      return {
+        'main-menu': this.gameMenu,
+        'start-survival': this.startSurvival,
+        'high-scores': this.renderHighScores,
+        'store': this.renderStore,
+        'survival': this.runSurvival
+      };
+    }
+  }, {
+    key: 'runSurvival',
+    value: function runSurvival() {
+      this.survival.play();
+    }
+  }, {
+    key: 'startSurvival',
+    value: function startSurvival() {
+      this.survival = new _survival2.default(this.player, this);
+      this.state = 'survival';
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      if (this.state === 'gameover') {
         this.run();
         return false;
       }
+
+      this.setDelta();
+      this.stateFunctionHash()[this.state].call(this);
+      this.renderPlayerText();
+      requestAnimationFrame(this.render.bind(this));
+    }
+  }, {
+    key: 'renderPlayerText',
+    value: function renderPlayerText() {
+      var ctx = this.ctx;
 
       ctx.beginPath();
       ctx.fillStyle = 'yellow';
       ctx.font = "30px Indie Flower, cursive";
       ctx.fillText('Player: ' + this.username, this.canvas.width / 2, 30);
       ctx.closePath();
-
-      requestAnimationFrame(this.render.bind(this));
     }
   }, {
     key: 'renderStore',
     value: function renderStore() {
-      var ctx = this.ctx,
-          canvas = this.canvas,
-          inventoryManager = this.inventoryManager;
-      var playerInventory = inventoryManager.playerInventory,
-          coins = inventoryManager.coins;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.beginPath();
-      ctx.fillStyle = 'rgba(100, 255, 255, .3)';
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = 'rgba(255, 255, 255, .9)';
-      ctx.rect(20, 80, String(coins).length * 10 + 400, 130);
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
-      ctx.beginPath();
-      var texture = inventoryTextures.coin;
-      var image = document.createElement('img');
-      image.src = '' + window.location.origin + texture.path;
-
-      ctx.drawImage(image, 40, 100, 90, 90);
-
-      ctx.fillStyle = 'yellow';
-      ctx.textBaseline = "middle";
-      ctx.font = "70px Indie Flower, cursive";
-      ctx.fillText('' + coins, 300, 150);
-      ctx.closePath();
-
-      playerInventory.forEach(function (item, i) {
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(100, 255, 255, .3)';
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = 'rgba(255, 255, 255, .9)';
-        ctx.rect(20, 280 * i + 300, 350, 260);
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-
-        ctx.beginPath();
-        var texture = inventoryTextures[item.name];
-        if (texture) {
-          var _image = document.createElement('img');
-          _image.src = '' + window.location.origin + texture.path;
-
-          ctx.drawImage(_image, 30, 280 * i + 300, 180, 180);
-        }
-
-        ctx.textAlign = 'left';
-        ctx.fillStyle = 'white';
-        ctx.textBaseline = "top";
-        ctx.font = "50px Indie Flower, cursive";
-        ctx.fillText('' + item.name, 60, 280 * i + 480);
-        ctx.fillText('' + item.quantity, 250, 280 * i + 350);
-        ctx.closePath();
-        ctx.textAlign = 'center';
-      });
-
-      this.player.draw(this.ctx, 3);
+      this.store.render();
     }
   }, {
     key: 'run',
@@ -414,7 +380,7 @@ var Game = function () {
 }();
 
 exports.default = Game;
-},{"./dot":2,"./menu":4,"./player":5,"./survival":6,"./utilities/animation-manager":7,"./utilities/input-manager":8,"./utilities/inventory-manager":9,"./utilities/utility-functions":15}],4:[function(require,module,exports){
+},{"./dot":2,"./menu":4,"./player":5,"./store":6,"./survival":7,"./utilities/animation-manager":8,"./utilities/input-manager":9,"./utilities/inventory-manager":11,"./utilities/inventory-textures":12,"./utilities/utility-functions":19}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -543,7 +509,7 @@ var Menu = function () {
 }();
 
 exports.default = Menu;
-},{"./utilities/menu-item":10,"./utilities/stub-data":13}],5:[function(require,module,exports){
+},{"./utilities/menu-item":13,"./utilities/stub-data":16}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -616,7 +582,95 @@ var Player = function () {
 }();
 
 exports.default = Player;
-},{"./utilities/player-skins":11}],6:[function(require,module,exports){
+},{"./utilities/player-skins":14}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Store = function () {
+  function Store(game) {
+    _classCallCheck(this, Store);
+
+    this.game = game;
+  }
+
+  _createClass(Store, [{
+    key: 'render',
+    value: function render() {
+      var _game = this.game,
+          ctx = _game.ctx,
+          canvas = _game.canvas,
+          inventoryManager = _game.inventoryManager;
+      var playerInventory = inventoryManager.playerInventory,
+          coins = inventoryManager.coins;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(100, 255, 255, .3)';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(255, 255, 255, .9)';
+      ctx.rect(20, 80, String(coins).length * 10 + 400, 130);
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+      ctx.beginPath();
+      var texture = inventoryTextures.coin;
+      var image = document.createElement('img');
+      image.src = '' + window.location.origin + texture.path;
+
+      ctx.drawImage(image, 40, 100, 90, 90);
+
+      ctx.fillStyle = 'yellow';
+      ctx.textBaseline = "middle";
+      ctx.font = "70px Indie Flower, cursive";
+      ctx.fillText('' + coins, 300, 150);
+      ctx.closePath();
+
+      playerInventory.forEach(function (item, i) {
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(100, 255, 255, .3)';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(255, 255, 255, .9)';
+        ctx.rect(20, 280 * i + 300, 350, 260);
+        ctx.stroke();
+        ctx.fill();
+        ctx.closePath();
+
+        ctx.beginPath();
+        var texture = inventoryTextures[item.name];
+        if (texture) {
+          var _image = document.createElement('img');
+          _image.src = '' + window.location.origin + texture.path;
+
+          ctx.drawImage(_image, 30, 280 * i + 300, 180, 180);
+        }
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'white';
+        ctx.textBaseline = "top";
+        ctx.font = "50px Indie Flower, cursive";
+        ctx.fillText('' + item.name, 60, 280 * i + 480);
+        ctx.fillText('' + item.quantity, 250, 280 * i + 350);
+        ctx.closePath();
+        ctx.textAlign = 'center';
+      });
+
+      this.game.player.draw(this.ctx, 3);
+    }
+  }]);
+
+  return Store;
+}();
+
+exports.default = Store;
+},{}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -697,6 +751,7 @@ var Survival = function () {
   }, {
     key: 'play',
     value: function play() {
+      console.log(this);
       var _game = this.game,
           ctx = _game.ctx,
           canvas = _game.canvas;
@@ -794,7 +849,7 @@ var Survival = function () {
 }();
 
 exports.default = Survival;
-},{"./dot":2,"./utilities/text-animation":14,"./utilities/utility-functions":15}],7:[function(require,module,exports){
+},{"./dot":2,"./utilities/text-animation":18,"./utilities/utility-functions":19}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -833,7 +888,7 @@ var AnimationManager = function () {
 }();
 
 exports.default = AnimationManager;
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -866,8 +921,8 @@ var InputManager = function () {
 }();
 
 exports.default = InputManager;
-},{}],9:[function(require,module,exports){
-'use strict';
+},{}],10:[function(require,module,exports){
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -876,30 +931,6 @@ Object.defineProperty(exports, "__esModule", {
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/* inventory
- *   Player {
- *     username,
- *     password,
- *     _id,
- *     inventory: [
- *       <InventoryItem>
- *     ]
- *   }
- *   InventoryItem {
- *     name,
- *     qauntity,
- *   }
- *
- * */
-var playerStub = {
-  username: 'John',
-  password: 'Rodney',
-  _id: 'a;lkjasdf',
-  inventory: []
-};
-
-var inventoryStub = [{ name: "hydrogen", quantity: 1 }, { name: "lithium", quantity: 1 }, { name: "helium", quantity: 1 }, { name: "beryllium", quantity: 1 }];
 
 var InventoryItem = function () {
   function InventoryItem(name, quantity) {
@@ -910,12 +941,12 @@ var InventoryItem = function () {
   }
 
   _createClass(InventoryItem, [{
-    key: 'addTo',
+    key: "addTo",
     value: function addTo(quantity) {
       this.quanitity += quantity;
     }
   }, {
-    key: 'getAsItemSchema',
+    key: "getAsItemSchema",
     value: function getAsItemSchema() {
       var quantity = this.quantity,
           name = this.name;
@@ -923,7 +954,7 @@ var InventoryItem = function () {
       return { quantity: quantity, name: name };
     }
   }, {
-    key: 'saveToPlayer',
+    key: "saveToPlayer",
     value: function saveToPlayer(player) {
       player.inventory.push(this.getAsItemSchema());
     }
@@ -932,43 +963,71 @@ var InventoryItem = function () {
   return InventoryItem;
 }();
 
+exports.default = InventoryItem;
+},{}],11:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _stubInventory = require('./stub-inventory');
+
+var _stubInventory2 = _interopRequireDefault(_stubInventory);
+
+var _inventoryItem = require('./inventory-item');
+
+var _inventoryItem2 = _interopRequireDefault(_inventoryItem);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var InventoryManager = function () {
   function InventoryManager(parent) {
     _classCallCheck(this, InventoryManager);
 
-    this.game = parent;
     var isDev = window.deployment === 'development';
-    this.playerInventory = isDev ? inventoryStub : [];
+    this.game = parent;
+    this.playerInventory = isDev ? _stubInventory2.default : [];
     this.coins = 0;
-    var self = this;
     if (!isDev) {
+      this.getInventoryFromDB();
+    }
+  }
+
+  _createClass(InventoryManager, [{
+    key: 'getInventoryFromDB',
+    value: function getInventoryFromDB() {
+      var self = this;
       var _game = this.game,
           username = _game.username,
           _id = _game._id;
+
 
       $.post(window.location.origin + '/dots/get-player', { username: username, _id: _id }, function (data) {
         if (data.length === 0) {
           return false;
         }
         self.coins = parseInt(data[0].coins);
+
         self.playerInventory = data[0].playerInventory.map(function (item) {
           var name = item.name,
               quantity = item.quantity;
 
-          console.log({ name: name, quantity: parseInt(quantity) });
           return { name: name, quantity: parseInt(quantity) };
         });
       });
     }
-  }
-
-  _createClass(InventoryManager, [{
+  }, {
     key: 'updateItem',
     value: function updateItem(item) {
       var playerInventory = this.playerInventory;
 
       this.playerInventory = playerInventory.map(function (ownedItem) {
-        return item.name === ownedItem.name ? new InventoryItem(item.name, ownedItem.quantity + item.quantity) : ownedItem;
+        return item.name === ownedItem.name ? new _inventoryItem2.default(item.name, ownedItem.quantity + item.quantity) : ownedItem;
       });
     }
   }, {
@@ -988,7 +1047,7 @@ var InventoryManager = function () {
       if (hasItem) {
         this.updateItem(item);
       } else {
-        playerInventory.push(new InventoryItem(item.name, item.quantity));
+        playerInventory.push(new _inventoryItem2.default(item.name, item.quantity));
       }
     }
   }]);
@@ -997,7 +1056,20 @@ var InventoryManager = function () {
 }();
 
 exports.default = InventoryManager;
-},{}],10:[function(require,module,exports){
+},{"./inventory-item":10,"./stub-inventory":17}],12:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = {
+  hydrogen: { path: '/images/hydrogen.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
+  helium: { path: '/images/helium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
+  beryllium: { path: '/images/beryllium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
+  lithium: { path: '/images/lithium.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 },
+  coin: { path: '/images/coin.png', xOffSet: 1, yOffSet: 1, wOffSet: 1, hOffSet: 1 }
+};
+},{}],13:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1046,14 +1118,14 @@ var MenuItem = function () {
 }();
 
 exports.default = MenuItem;
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = [{ path: '/images/red-devil-skin.png', xOffSet: 1.3, yOffSet: 2, wOffSet: 2.7, hOffSet: 2 }, { path: '/images/green-goat.png', xOffSet: 1, yOffSet: 1, wOffSet: 2, hOffSet: 1 }, { path: '/images/blueface.png', xOffSet: 1, yOffSet: 1, wOffSet: 2, hOffSet: 1 }];
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1069,7 +1141,7 @@ function shadeColor2(color, percent) {
         B = f & 0x0000FF;
     return "#" + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
 }
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1077,7 +1149,14 @@ Object.defineProperty(exports, "__esModule", {
 });
 /* a sample high score data response from the server */
 exports.default = [{ "_id": "5a14d3365069fea02442183f", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "75" }, { "_id": "5a15b44fe094b7a08d1d3171", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "31" }, { "_id": "5a14d3615069fea024421840", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "30" }, { "_id": "5a14d2e45069fea02442183d", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "28" }, { "_id": "5a15b280e094b7a08d1d316d", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "24" }, { "_id": "5a14d2f45069fea02442183e", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "21" }, { "_id": "5a15b351e094b7a08d1d316e", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "174" }, { "_id": "5a15b436e094b7a08d1d3170", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "168" }, { "_id": "5a15b265e094b7a08d1d316b", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "15" }, { "_id": "5a15b26ce094b7a08d1d316c", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "12" }, { "_id": "5a15b25de094b7a08d1d316a", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "11" }, { "_id": "5a15b38fe094b7a08d1d316f", "username": "John", "playerId": "5a14b46c411b829a380620be", "score": "10" }];
-},{}],14:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = [{ name: "hydrogen", quantity: 1 }, { name: "lithium", quantity: 1 }, { name: "helium", quantity: 1 }, { name: "beryllium", quantity: 1 }];
+},{}],18:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1103,13 +1182,18 @@ var TextAnimation = function () {
   _createClass(TextAnimation, [{
     key: "draw",
     value: function draw(ctx) {
+      var text = this.text,
+          x = this.x,
+          y = this.y,
+          end = this.end;
+
       ctx.beginPath();
       ctx.fillStyle = 'yellow';
       ctx.font = "30px Arial";
-      ctx.fillText(this.text, this.x, this.y);
+      ctx.fillText(text, x, y);
       ctx.closePath();
       this.y -= 5;
-      if (this.end < new Date().getTime()) {
+      if (end < new Date().getTime()) {
         this.destroy = true;
       }
     }
@@ -1119,7 +1203,7 @@ var TextAnimation = function () {
 }();
 
 exports.default = TextAnimation;
-},{}],15:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1132,21 +1216,21 @@ function offscreen(dot) {
 }
 
 function getCookie(cname) {
-  var name = cname + "=";
+  var name = cname + '=';
   var decodedCookie = decodeURIComponent(document.cookie);
   var ca = decodedCookie.split(';');
   for (var i = 0; i < ca.length; i++) {
     var c = ca[i];
-    while (c.charAt(0) == ' ') {
+    while (c.charAt(0) === ' ') {
       c = c.substring(1);
     }
-    if (c.indexOf(name) == 0) {
+    if (c.indexOf(name) === 0) {
       return c.substring(name.length, c.length);
     }
   }
-  return "";
+  return '';
 }
-},{}],16:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 'use strict';
 
 var _game = require('./game/game');
@@ -1158,4 +1242,4 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 window.onload = function () {
   return new _game2.default().run();
 };
-},{"./game/game":3}]},{},[16]);
+},{"./game/game":3}]},{},[20]);
