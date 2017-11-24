@@ -48,10 +48,24 @@ class InventoryItem {
 }
 
 export default class InventoryManager {
-  constructor() {
-    console.log(this)
-    this.playerInventory = inventoryStub;
+  constructor(parent) {
+    this.game = parent;
+    const isDev = window.deployment === 'development';
+    this.playerInventory = isDev ? inventoryStub : [];
     this.coins = 0;
+    const self = this;
+    if (!isDev) {
+      const { username, _id } = this.game;
+      $.post(`${window.location.origin}/dots/get-player`, { username, _id }, (data) => {
+        if (data.length === 0) { return false; }
+        self.coins = parseInt(data[0].coins);
+        self.playerInventory = data[0].playerInventory.map(item => {
+          const { name, quantity } = item;
+          console.log({ name, quantity: parseInt(quantity) })
+          return { name, quantity: parseInt(quantity) };
+        });
+      });
+    }
   }
 
   updateItem(item) {

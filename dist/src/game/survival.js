@@ -142,6 +142,16 @@ var Survival = function () {
               $.post(window.location.origin + '/dots/highscore', { username: _this.game.username, playerId: _this.game._id, score: _this.player.radius }, function (data) {
                 console.log(data, 'posted high score');
               });
+              var _game2 = _this.game,
+                  username = _game2.username,
+                  _id = _game2._id;
+              var _game$inventoryManage = _this.game.inventoryManager,
+                  coins = _game$inventoryManage.coins,
+                  playerInventory = _game$inventoryManage.playerInventory;
+
+              $.post(window.location.origin + '/dots/player', { username: username, _id: _id, coins: coins, playerInventory: playerInventory }, function (data) {
+                console.log(data, 'player inventory');
+              });
             }
           }
         }

@@ -92,6 +92,11 @@ export default class Survival {
             $.post(`${window.location.origin}/dots/highscore`, { username: this.game.username, playerId: this.game._id, score: this.player.radius }, (data) => {
               console.log(data, 'posted high score');
             });
+            const { username, _id } = this.game;
+            const { coins, playerInventory } = this.game.inventoryManager;
+            $.post(`${window.location.origin}/dots/player`, { username, _id, coins, playerInventory }, (data) => {
+              console.log(data, 'player inventory');
+            });
           }
         }
       }

@@ -57,7 +57,7 @@ var Game = function () {
     this.username = (0, _utilityFunctions.getCookie)('username');
     this._id = (0, _utilityFunctions.getCookie)('_id');
     this.animationManager = new _animationManager2.default();
-    this.inventoryManager = new _inventoryManager2.default();
+    this.inventoryManager = new _inventoryManager2.default(this);
     this.inputManger = new _inputManager2.default(this);
     this.menu = new _menu2.default(this);
     this.state = 'main-menu';
@@ -106,6 +106,7 @@ var Game = function () {
         ctx.closePath();
         ctx.beginPath();
         ctx.fillStyle = 'yellow';
+        ctx.textBaseline = 'alphabetic';
         ctx.font = "50px Indie Flower, cursive";
         ctx.fillText(i + 1 + '.   ' + score.username + ':   ' + score.score, _this.canvas.width / 2, 60 + startY + scoreHeight * i);
         ctx.closePath();

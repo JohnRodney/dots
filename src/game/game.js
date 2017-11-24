@@ -21,7 +21,7 @@ export default class Game {
     this.username = getCookie('username');
     this._id = getCookie('_id');
     this.animationManager = new AnimationManager();
-    this.inventoryManager = new InventoryManager();
+    this.inventoryManager = new InventoryManager(this);
     this.inputManger = new InputManager(this);
     this.menu = new Menu(this);
     this.state = 'main-menu';
@@ -61,6 +61,7 @@ export default class Game {
       ctx.closePath();
       ctx.beginPath();
       ctx.fillStyle = 'yellow';
+      ctx.textBaseline = 'alphabetic';
       ctx.font = "50px Indie Flower, cursive";
       ctx.fillText(`${i+1}.   ${score.username}:   ${score.score}`, this.canvas.width / 2, 60 + startY + scoreHeight * i);
       ctx.closePath();

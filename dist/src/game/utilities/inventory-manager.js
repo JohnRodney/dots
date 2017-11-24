@@ -64,12 +64,33 @@ var InventoryItem = function () {
 }();
 
 var InventoryManager = function () {
-  function InventoryManager() {
+  function InventoryManager(parent) {
     _classCallCheck(this, InventoryManager);
 
-    console.log(this);
-    this.playerInventory = inventoryStub;
+    this.game = parent;
+    var isDev = window.deployment === 'development';
+    this.playerInventory = isDev ? inventoryStub : [];
     this.coins = 0;
+    var self = this;
+    if (!isDev) {
+      var _game = this.game,
+          username = _game.username,
+          _id = _game._id;
+
+      $.post(window.location.origin + '/dots/get-player', { username: username, _id: _id }, function (data) {
+        if (data.length === 0) {
+          return false;
+        }
+        self.coins = parseInt(data[0].coins);
+        self.playerInventory = data[0].playerInventory.map(function (item) {
+          var name = item.name,
+              quantity = item.quantity;
+
+          console.log({ name: name, quantity: parseInt(quantity) });
+          return { name: name, quantity: parseInt(quantity) };
+        });
+      });
+    }
   }
 
   _createClass(InventoryManager, [{
