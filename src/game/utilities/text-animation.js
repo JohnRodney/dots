@@ -9,13 +9,14 @@ export default class TextAnimation {
   }
 
   draw(ctx) {
+    const { text, x, y, end } = this;
     ctx.beginPath();
     ctx.fillStyle = 'yellow';
     ctx.font = "30px Arial";
-    ctx.fillText(this.text , this.x, this.y);
+    ctx.fillText(text , x, y);
     ctx.closePath();
     this.y -= 5;
-    if (this.end < new Date().getTime()) {
+    if (end < new Date().getTime()) {
       this.destroy = true;
     }
   }

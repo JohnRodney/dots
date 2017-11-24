@@ -23,13 +23,18 @@ var TextAnimation = function () {
   _createClass(TextAnimation, [{
     key: "draw",
     value: function draw(ctx) {
+      var text = this.text,
+          x = this.x,
+          y = this.y,
+          end = this.end;
+
       ctx.beginPath();
       ctx.fillStyle = 'yellow';
       ctx.font = "30px Arial";
-      ctx.fillText(this.text, this.x, this.y);
+      ctx.fillText(text, x, y);
       ctx.closePath();
       this.y -= 5;
-      if (this.end < new Date().getTime()) {
+      if (end < new Date().getTime()) {
         this.destroy = true;
       }
     }
